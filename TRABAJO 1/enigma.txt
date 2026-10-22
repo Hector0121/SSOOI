@@ -107,7 +107,3 @@ else
     	esac
 	done
 fi
-
-
-
-hector feo y un poco bobolon
