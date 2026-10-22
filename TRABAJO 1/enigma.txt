@@ -1,0 +1,109 @@
+#!/bin/bash
+
+if test "$#" -ge 2
+then 
+	echo "Error:Solo puedes pasar un argumento."
+fi
+if test "$#" -eq 1
+
+#MODO_INFORMACION
+
+	echo "|------------------------------------------------------|"
+	echo "|               MODO DE INFORMACIÓN                    |"
+	echo "|------------------------------------------------------|"
+	echo "| Número de integrantes (2)                            |"
+	echo "| Integrante 1: Héctor Vicente González                |"
+	echo "| Integrante 2: Andrés Romo Gómez                      |"
+	echo "|======================================================|"
+	echo "| (Explicación de la IA ) No implementada aún          |"
+	echo "|======================================================|"
+	echo "| (Explicación de la estadística ) no implementada aún |"
+	echo "|======================================================|"
+
+
+exit 1
+fi
+else
+
+#MODO_NORMAL
+
+CFG="config.cfg"
+FRASES="frases.dat"
+
+if test ! -f "$CFG"
+then
+    echo "Error: no existe el fichero config.cfg"
+    exit 1
+fi
+
+if test ! -f "$FRASES"
+then
+    echo "Error: no existe el fichero frases.dat"
+    exit 1
+fi
+
+if test ! -r "$CFG"
+then
+    echo "Error: config.cfg no tiene permiso de lectura."
+    exit 1
+fi
+
+if test ! -w "$CFG"
+then
+    echo "Error: config.cfg no tiene permiso de escritura."
+    exit 1
+fi
+
+if test ! -r "$FRASES"
+then
+    echo "Error: frases.dat no tiene permisos de lectura."
+    exit 1
+fi
+
+if test ! -w "$FRASES"
+then
+    echo "Error: frases.dat no tiene permisos de escritura."
+    exit 1
+fi
+
+
+else 
+	while true
+	do
+    	echo "=================="
+   	echo "JUEGO “EL ENIGMA”"
+	echo "================="
+    	echo "C) CONFIGURACION"
+    	echo "J) JUGAR"
+    	echo "F) FRASES"
+    	echo "E) ESTADISTICAS"
+    	echo "S) SALIR"
+    	echo -n "Introduzca una opcion >> "
+    	read OPCION
+    	case "$OPCION" in
+        	c | C )
+            		echo "Opción CONFIGURACON"
+
+            	;;
+        	j | J )
+            		echo "Opción JUAR"
+
+            	;;
+        	f | F )
+            		echo "Opción FRSES"
+
+            	;;
+        	e | E )
+            		echo "Opción ESTDISTICA"
+
+            	;;
+        	s | S )
+
+            		exit 0
+            	;;
+        	* )
+            		echo "Opciónno válida"
+            	;;
+    	esac
+	done
+fi
