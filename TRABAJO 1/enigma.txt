@@ -3,8 +3,17 @@
 if test "$#" -ge 2
 then 
 	echo "Error:Solo puedes pasar un argumento."
+	echo "Uso: enigma.sh [-g]"
+	exit 1
 fi
 if test "$#" -eq 1
+then
+	if test "$1" != "-g"
+	then
+		echo "Error: argumento no valido"
+		echo "Uso: enigma.sh [-g]"
+		exit 1
+	fi
 
 #MODO_INFORMACION
 
@@ -15,17 +24,27 @@ if test "$#" -eq 1
 	echo "| Integrante 1: Héctor Vicente González                |"
 	echo "| Integrante 2: Andrés Romo Gómez                      |"
 	echo "|======================================================|"
-	echo "| (Explicación de la IA ) No implementada aún          |"
+	echo "| ESTRATEGIA 2 (IA propia en frecuiencia al castellano)|"
+	echo "|	La IA pide las letras de mas a menos frecuentes 	 |"
+	echo "| saltandose las ya usadas en la ronda. Asi acierta mas|"
+	echo "| , conserva el turno y pierde menos puntos de vida.   |"
 	echo "|======================================================|"
-	echo "| (Explicación de la estadística ) no implementada aún |"
+	echo "| ESTADISTICA LIBRE: porcentraje de rondas desiertas.  |"
+	echo "| Suma las rondas de todas las partidas del LOG y      |"
+	echo "| calcula que parte quedo sin resolver por nadie:      |"
+	echo "| Formula: (RONDAS - FRASES_RESUELTAS) * 100 / RONDAS  |"
 	echo "|======================================================|"
 
-
-exit 1
+exit 0
 fi
-else
 
 #MODO_NORMAL
+
+#case "$0" in
+    #*/* )
+		#cd "${0%/"}"  #Sirve para que el script encuentre config.cfg y frases.dat aunque se ejecute desde otra carpeta.
+		#;;
+#esac
 
 CFG="config.cfg"
 FRASES="frases.dat"
@@ -66,13 +85,38 @@ then
     exit 1
 fi
 
+PARAMETROS="JUGADORES RONDAS PVIDA PFALLO PRESPUESTA CATEGORIAS ESTRATEGIA LOG"
+CATS[1]=REFRAN
+CATS[2]=PELICULA
+CATS[3]=MUSICA
+CATS[4]=DEPORTE
+AYUDA[1]="entre 2 y 4"
+AYUDA[2]="entero positivo"
+AYUDA[3]="entre 50 y 100"
+AYUDA[4]="entre 5 y 10"
+AYUDA[5]="PFALLO < PRESPUESTA < PVIDA"
+AYUDA[6]="entre 1 y 4"
+AYUDA[7]="0 alfabética, 1 aleatoria, 2 propia"
+AYUDA[8]="ruta del fichero de registro"
+NOMBRE[0]="ESTRATEGIA=0 (selección alfabética)"
+NOMBRE[1]="ESTRATEGIA=1 (selección aleatoria)"
+NOMBRE[2]="ESTRATEGIA=2 (estrategia propia)"
+NOMBRE[11]="CATEGORIAS=1 (Refranes)"
+NOMBRE[12]="CATEGORIAS=2 (Refranes y Películas)"
+NOMBRE[13]="CATEGORIAS=3 (Refranes, Películas y Música)"
+NOMBRE[14]="CATEGORIAS=4 (Refranes, Películas, Música y Deportes)"
+ABECEDARIO="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+MINUSCULAS="abcdefghijklmnopqrstuvwxyz"
+FRECUENCIA="EAOSRNIDLCTUMPBGVYQHFZJXKW"
+CABECERA="FECHA|HORA|TPO|JUGADORES|RONDAS|PVIDA|PFALLO|PRESPUESTA|CATEGORIAS|ESTRATEGIA|GANADOR|RONDAS_GANADAS_J1|RONDAS_GANADAS_J2|RONDAS_GANADAS_J3|RONDAS_GANADAS_J4|LETRAS_UTILIZADAS|FRASES_RESUELTAS"
+
 
 else 
 	while true
 	do
-    	echo "=================="
+    echo "=================="
    	echo "JUEGO “EL ENIGMA”"
-	echo "================="
+	echo "=================="
     	echo "C) CONFIGURACION"
     	echo "J) JUGAR"
     	echo "F) FRASES"
