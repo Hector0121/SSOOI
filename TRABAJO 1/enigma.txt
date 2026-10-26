@@ -1,5 +1,6 @@
 #!/bin/bash
 
+function comprobar_argumentos{
 if test "$#" -ge 2
 then 
 	echo "Error:Solo puedes pasar un argumento."
@@ -14,9 +15,10 @@ then
 		echo "Uso: enigma.sh [-g]"
 		exit 1
 	fi
+}
 
 #MODO_INFORMACION
-
+function modo_informacion{
 	echo "|------------------------------------------------------|"
 	echo "|               MODO DE INFORMACIÓN                    |"
 	echo "|------------------------------------------------------|"
@@ -34,21 +36,42 @@ then
 	echo "| calcula que parte quedo sin resolver por nadie:      |"
 	echo "| Formula: (RONDAS - FRASES_RESUELTAS) * 100 / RONDAS  |"
 	echo "|======================================================|"
+}
 
-exit 0
-fi
 
 #MODO_NORMAL
 
-#case "$0" in
-    #*/* )
-		#cd "${0%/"}"  #Sirve para que el script encuentre config.cfg y frases.dat aunque se ejecute desde otra carpeta.
-		#;;
-#esac
 
+function inicializar_datos{
 CFG="config.cfg"
 FRASES="frases.dat"
+PARAMETROS="JUGADORES RONDAS PVIDA PFALLO PRESPUESTA CATEGORIAS ESTRATEGIA LOG"
+CATS[1]=REFRAN
+CATS[2]=PELICULA
+CATS[3]=MUSICA
+CATS[4]=DEPORTE
+AYUDA[1]="entre 2 y 4"
+AYUDA[2]="entero positivo"
+AYUDA[3]="entre 50 y 100"
+AYUDA[4]="entre 5 y 10"
+AYUDA[5]="PFALLO < PRESPUESTA < PVIDA"
+AYUDA[6]="entre 1 y 4"
+AYUDA[7]="0 alfabética, 1 aleatoria, 2 propia"
+AYUDA[8]="ruta del fichero de registro"
+NOMBRE[0]="ESTRATEGIA=0 (selección alfabética)"
+NOMBRE[1]="ESTRATEGIA=1 (selección aleatoria)"
+NOMBRE[2]="ESTRATEGIA=2 (estrategia propia)"
+NOMBRE[11]="CATEGORIAS=1 (Refranes)"
+NOMBRE[12]="CATEGORIAS=2 (Refranes y Películas)"
+NOMBRE[13]="CATEGORIAS=3 (Refranes, Películas y Música)"
+NOMBRE[14]="CATEGORIAS=4 (Refranes, Películas, Música y Deportes)"
+ABECEDARIO="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+MINUSCULAS="abcdefghijklmnopqrstuvwxyz"
+FRECUENCIA="EAOSRNIDLCTUMPBGVYQHFZJXKW"
+CABECERA="FECHA|HORA|TPO|JUGADORES|RONDAS|PVIDA|PFALLO|PRESPUESTA|CATEGORIAS|ESTRATEGIA|GANADOR|RONDAS_GANADAS_J1|RONDAS_GANADAS_J2|RONDAS_GANADAS_J3|RONDAS_GANADAS_J4|LETRAS_UTILIZADAS|FRASES_RESUELTAS"
+}
 
+function comprobar_ficheros{
 if test ! -f "$CFG"
 then
     echo "Error: no existe el fichero config.cfg"
@@ -84,39 +107,72 @@ then
     echo "Error: frases.dat no tiene permisos de escritura."
     exit 1
 fi
+}
 
-PARAMETROS="JUGADORES RONDAS PVIDA PFALLO PRESPUESTA CATEGORIAS ESTRATEGIA LOG"
-CATS[1]=REFRAN
-CATS[2]=PELICULA
-CATS[3]=MUSICA
-CATS[4]=DEPORTE
-AYUDA[1]="entre 2 y 4"
-AYUDA[2]="entero positivo"
-AYUDA[3]="entre 50 y 100"
-AYUDA[4]="entre 5 y 10"
-AYUDA[5]="PFALLO < PRESPUESTA < PVIDA"
-AYUDA[6]="entre 1 y 4"
-AYUDA[7]="0 alfabética, 1 aleatoria, 2 propia"
-AYUDA[8]="ruta del fichero de registro"
-NOMBRE[0]="ESTRATEGIA=0 (selección alfabética)"
-NOMBRE[1]="ESTRATEGIA=1 (selección aleatoria)"
-NOMBRE[2]="ESTRATEGIA=2 (estrategia propia)"
-NOMBRE[11]="CATEGORIAS=1 (Refranes)"
-NOMBRE[12]="CATEGORIAS=2 (Refranes y Películas)"
-NOMBRE[13]="CATEGORIAS=3 (Refranes, Películas y Música)"
-NOMBRE[14]="CATEGORIAS=4 (Refranes, Películas, Música y Deportes)"
-ABECEDARIO="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-MINUSCULAS="abcdefghijklmnopqrstuvwxyz"
-FRECUENCIA="EAOSRNIDLCTUMPBGVYQHFZJXKW"
-CABECERA="FECHA|HORA|TPO|JUGADORES|RONDAS|PVIDA|PFALLO|PRESPUESTA|CATEGORIAS|ESTRATEGIA|GANADOR|RONDAS_GANADAS_J1|RONDAS_GANADAS_J2|RONDAS_GANADAS_J3|RONDAS_GANADAS_J4|LETRAS_UTILIZADAS|FRASES_RESUELTAS"
+function leer{
+	ENTRADA=""
+	if read ENTRADA
+	then
+		return 0
+	fi
+	echo
+	echo "No hay mas datos de entrada. Fin del programa."
+	exit 1
+}
 
+function pausa{
+	echo -n "Pulse una tecla para continuar."
+	leer
+}
 
-else 
+function leer_linea{
+	LINEA=""
+	if read LINEA
+	then
+		return 0
+	fi
+	test -n "$LINEA"
+}
+									#despues se borraran los comentario tranqui hectorcito
+function mayusculas                       # Recibe el texto en $1 y deja el resultado en MAYUS
+{                                         
+	MAYUS=""                              # Vacía MAYUS
+	POS_M=0                               # Posición del carácter que se está mirando (empieza en 0, el primero)
+	while test $POS_M -lt ${#1}           # Repite mientras POS_M sea menor que la longitud del texto. la long del texto es #1
+	do                                    
+		CAR="${1:$POS_M:1}"               # Coge 1 carácter de $1 a partir de la posición POS_M (sesión 4: ${VAR:inicio:longitud})
+		case "$CAR" in                    # Mira qué carácter es
+			[abcdefghijklmnopqrstuvwxyz] )  # Solo entra aquí si es una letra minúscula de la a a la z
+				PREVIO="${MINUSCULAS%%$CAR*}"     # De "abcd...z" borra desde la letra hasta el final: quedan las letras ANTERIORES a ella
+				CAR="${ABECEDARIO:${#PREVIO}:1}"  # ${#PREVIO} = cuántas letras hay antes = su posición; coge esa misma posición en "ABCD...Z"
+				;;                      
+		esac                              # Si no era minúscula CAR se queda igual
+		MAYUS="$MAYUS$CAR"                # Añade el carácter (convertido o no) al final del resultado
+		POS_M=$(($POS_M+1))               # Pasa a la siguiente posición
+	done                                  # vuelve al while
+}                                         # El resultado queda en la variable MAYUS
+
+function entero # ahora sigo 
+{
+	NUM="$1"
+	case "$NUM" in
+		"" | *[!0123456789]* )
+			return 1
+			;;
+	esac
+	while test ${#NUM} -gt 1 -a "${NUM:0:1}" = "0"
+	do
+		NUM="${NUM:1}"
+	done
+	test ${#NUM} -le 9
+}
+
+function menu_principal{
 	while true
 	do
-    echo "=================="
-   	echo "JUEGO “EL ENIGMA”"
-	echo "=================="
+   	    echo "=================="
+   		echo "JUEGO “EL ENIGMA”"
+		echo "=================="
     	echo "C) CONFIGURACION"
     	echo "J) JUGAR"
     	echo "F) FRASES"
@@ -150,4 +206,4 @@ else
             	;;
     	esac
 	done
-fi
+}
