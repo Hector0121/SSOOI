@@ -186,15 +186,15 @@ function menu_principal{
 
             	;;
         	j | J )
-            		echo "Opción JUAR"
+            		echo "Opción JUGAR"
 
             	;;
         	f | F )
-            		echo "Opción FRSES"
+            		echo "Opción FRASES"
 
             	;;
         	e | E )
-            		echo "Opción ESTDISTICA"
+            		echo "Opción ESTADISTICA"
 
             	;;
         	s | S )
@@ -202,7 +202,7 @@ function menu_principal{
             		exit 0
             	;;
         	* )
-            		echo "Opciónno válida"
+            		echo "Opción válida"
             	;;
     	esac
 	done
