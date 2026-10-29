@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function comprobar_argumentos{
+function comprobar_argumentos {
 if test "$#" -ge 2
 then 
 	echo "Error:Solo puedes pasar un argumento."
@@ -131,6 +131,25 @@ then
 fi
 }
 
+function validar_ficheros
+{
+	cargar_config
+	ERROR_CFG=$?
+	validar_config
+	if test $? -ne 0 -o $ERROR_CFG -ne 0
+	then
+		echo "Error: el fichero config.cfg no es válido."
+		exit 1
+	fi
+	aplicar_config
+	cargar_frases
+	if test $NFRASES -eq 0
+	then
+		echo "Error: el fichero frases.dat no contiene ninguna frase válida."
+		exit 1
+	fi
+}
+
 function leer
 {
 	ENTRADA=""
@@ -168,13 +187,13 @@ function mayusculas
 		CAR="${1:$POS_M:1}"
 		for I in ${!MINUSCULAS[*]}
 		do
-			if test "CAR"="{MINUSCULAS[$I]}"
-			then
+				if test "$CAR" = "${MINUSCULAS[$I]}"			
+				then
 				CAR=${ABECEDARIO[$I]}
 			fi
 		done
-		MAYUS="MAYUSCAR"
-		POS_M=((POS_M+1))
+		MAYUS="MAYUS$CAR"
+		POS_M=$(($POS_M+1))
 	done
 }
 
@@ -186,7 +205,7 @@ function entero
 			return 1
 			;;
 	esac
-	while test #NUM-gt1-a"{NUM:0:1}" = "0"
+	while test ${#NUM} -gt 1 -a "${NUM:0:1}" = "0"
 	do
 		NUM="${NUM:1}"
 	done
@@ -199,7 +218,7 @@ function rango
 	then
 		if test $NUM -ge $2 -a $NUM -le $3
 		then
-			VALOR[1]=NUM
+			VALOR[$1]=$NUM
 			return 0
 		fi
 	fi
@@ -225,7 +244,7 @@ function cargar_config
 		do
 			case "$LINEA" in
 				"${PARAM[$N]}="* ) #parametro que sea carácter = y despues lo que sea que tenga el valor
-					VALOR[N]="{LINEA#*=}"
+					VALOR[$N]="${LINEA#*=}"
 					ENCONTRADO=1
 					;;
 			esac
@@ -246,7 +265,7 @@ function validar_config
 	rango 4 5 10 "un numero entero entre 5 y 10"
 	if test $CONFIG_OK -eq 0
 	then
-		rango 5 (({VALOR[4]}+1)) (({VALOR[3]}-1)) "un numero entero que cumpla PFALLO < PRESPUESTA < PVIDA (${VALOR[4]} < PRESPUESTA < ${VALOR[3]})"
+		rango 5 $((${VALOR[4]}+1)) $((${VALOR[3]}-1)) "un numero entero que cumpla PFALLO < PRESPUESTA < PVIDA (${VALOR[4]} < PRESPUESTA < ${VALOR[3]})"
 	else
 		rango 5 1 999999999 "un numero entero que cumpla PFALLO < PRESPUESTA < PVIDA"
 	fi
@@ -296,14 +315,14 @@ function cambiar_parametro
 	ANTERIOR="${VALOR[$NUMERO]}"
 	echo -n " Nuevo valor para ${PARAM[$NUMERO]} (actual: $ANTERIOR) >> "
 	leer
-	VALOR[NUMERO]="ENTRADA"
+	VALOR[$NUMERO]="$ENTRADA"
 	if validar_config
 	then
 		escribir_config > "$CFG"
 		aplicar_config
 		echo " ${PARAM[$NUMERO]} se ha cambiado a ${VALOR[$NUMERO]} y se ha guardado en $CFG."
 	else
-		VALOR[NUMERO]="ANTERIOR"
+		VALOR[$NUMERO]="$ANTERIOR"
 		echo " No se ha modificado ${PARAM[$NUMERO]}: sigue valiendo $ANTERIOR."
 	fi
 }
@@ -375,12 +394,12 @@ function analizar_frase
 	TEXTO="${LINEA#*:}" #se queda con todo despues de los : para quedarse con la frase
 	for N in 1 2 3 4
 	do
-		if test "CATEG"="{CATS[$N]}"
+		if test "$CATEG"="${CATS[$N]}"
 		then
 			NIVEL=$N
 		fi
 	done
-	if test "CATEG"="LINEA"
+	if test "$CATEG"="$LINEA"
 	then
 		NIVEL=0
 	elif frase_incorrecta "$TEXTO"
@@ -389,16 +408,16 @@ function analizar_frase
 	fi
 	if test $NIVEL -eq 0
 	then
-		NINVALIDAS=((NINVALIDAS+1))
+		NINVALIDAS=$(($NINVALIDAS+1))
 	elif test -n "${VISTA[$TEXTO]}"
 	then
-		NREPETIDAS=((NREPETIDAS+1))
+		NREPETIDAS=$(($NREPETIDAS+1))
 	else
 		VISTA[$TEXTO]=1
-		NFRASES=((NFRASES+1))
-		FCAT[NFRASES]="CATEG"
-		FNIV[NFRASES]=NIVEL
-		FTXT[NFRASES]="TEXTO"
+		NFRASES=$(($NFRASES+1))
+		FCAT[$NFRASES]="$CATEG"
+		FNIV[$NFRASES]=$NIVEL
+		FTXT[$NFRASES]="$TEXTO"
 	fi
 }
 
@@ -413,13 +432,13 @@ function consultar_frases
 		then
 			ESTADO_CAT="no habilitada"
 		fi
-		echo " --- ${CATS[$N]} (ESTADOCATconCATEGORIAS=CATEGORIAS) ---"
+		echo " --- ${CATS[$N]} ($ESTADO_CAT con CATEGORIAS=$CATEGORIAS) ---"
 		CUENTA=0
 		for POS in ${!FTXT[*]}
 		do
 			if test ${FNIV[$POS]} -eq $N
 			then
-				CUENTA=((CUENTA+1))
+				CUENTA=$(($CUENTA+1))
 				echo "   $CUENTA. ${FTXT[$POS]}"
 			fi
 		done
@@ -486,7 +505,7 @@ function anadir_frase
 		echo " Error: la frase \"$MAYUS\" ya existe en $FRASES."
 	else
 		asegurar_salto "$FRASES"
-		if echo "${CATS[$NIVEL]}:MAYUS"2>/dev/null>>"FRASES"
+		if echo "${CATS[$NIVEL]}:$MAYUS" 2> /dev/null >> "$FRASES"
 		then
 			echo " Frase añadida: ${CATS[$NIVEL]}:$MAYUS"
 		else
@@ -528,11 +547,6 @@ function opcion_frases
 }
 
 
-
-
-
-
-—--------------------------------------------------------------------
 function crear_jugadores()
 {
     eval "declare -g -a PERSONA=()";
@@ -707,9 +721,6 @@ function ImpimirVectorLetras()
     echo "${LETRAS_ESCRITAS[*]}"
 }
 
-
-
-—------------------------------------------------------------------------------------
 
 function opcion_jugar  {
 	  
@@ -1166,15 +1177,23 @@ function opcion_jugar  {
 }
 
 
+
+
+
+
+
+
+
+
 function dividir
 {
-	CENT=(((1 * 100 + $2 / 2) / $2 ))
-	FRAC=((CENT % 100))
+	CENT=((($1 * 100 + $2 / 2) / $2 ))
+	FRAC=$(($CENT % 100))
 	if test $FRAC -lt 10
 	then
 		FRAC="0$FRAC"
 	fi
-	DEC="((CENT / 100)),$FRAC"
+	DEC="$(($CENT / 100)),$FRAC"
 }
 
 function columna
@@ -1187,7 +1206,7 @@ function sumar
 	SUMA=0
 	for V in `columna $1`
 	do
-		SUMA=((SUMA+$V))
+		SUMA=$(($SUMA+$V))
 	done
 }
 
@@ -1206,7 +1225,7 @@ function mas_usados
 	do
 		if test ${VECES[$V]} -eq $MAXIMO
 		then
-			echo "   3=V ($MAXIMO partidas)"
+			echo "   $3=$V ($MAXIMO partidas)"
 		fi
 	done
 }
@@ -1254,14 +1273,14 @@ function opcion_estadisticas
 	echo " Rendimiento por jugador:"
 	for J in 1 2 3 4
 	do
-		JUGADAS=`columna ((J+11)) | grep -v "^-\$" | wc -l`
+		JUGADAS=`columna $(($J+11)) | grep -v "^-\$" | wc -l`
 		VICTORIAS=`columna 11 | grep "^$J\$" | wc -l`
 		if test $JUGADAS -eq 0
 		then
 			echo "   Jugador $J: no ha participado en ninguna partida"
 		else
-			dividir ((VICTORIAS*100)) $JUGADAS
-			echo "   Jugador $J: $VICTORIAS partidas ganadas de JUGADASjugadas(DEC %)"
+			dividir $(($VICTORIAS*100)) $JUGADAS
+			echo "   Jugador $J: $VICTORIAS partidas ganadas de $JUGADAS jugadas ($DEC %)"
 		fi
 	done
 	sumar 5
@@ -1276,9 +1295,9 @@ function opcion_estadisticas
 	dividir $SUMA $NPART
 	echo " Promedio de letras utilizadas por partida: $DEC"
 	sumar 17
-	DESIERTAS=((TOTAL_RONDAS-$SUMA))
-	dividir ((DESIERTAS*100)) $TOTAL_RONDAS
-	echo " Estadística libre - rondas desiertas: $DESIERTAS de TOTALRONDASrondasjugadas(DEC %)"
+	DESIERTAS=$(($TOTAL_RONDAS-$SUMA))
+	dividir $(($DESIERTAS*100)) $TOTAL_RONDAS
+	echo " Estadística libre - rondas desiertas: $DESIERTAS de $TOTAL_RONDAS rondas jugadas ($DEC %)"
 }
 
 function menu_principal {
@@ -1316,7 +1335,7 @@ function menu_principal {
             		exit 0
             	;;
         	* )
-            		echo "Opción válida"
+            		echo "Opción no válida"
             	;;
     	esac
     	pausa
@@ -1331,7 +1350,7 @@ function modo_normal
 	menu_principal
 }
 
-comprobar_argumentos #"1"
+comprobar_argumentos $# "1"
 modo_normal
 
 
