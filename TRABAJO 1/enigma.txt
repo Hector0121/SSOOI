@@ -1,15 +1,15 @@
 #!/bin/bash
 
 function comprobar_argumentos {
-if test "$#" -ge 2
+if test "$1" -ge 2
 then 
 	echo "Error:Solo puedes pasar un argumento."
 	echo "Uso: enigma.sh [-g]"
 	exit 1
 fi
-if test "$#" -eq 1
+if test "$1" -eq 1
 then
-	if test "$1" != "-g"
+	if test "$2" != "-g"
 	then
 		echo "Error: argumento no valido"
 		echo "Uso: enigma.sh [-g]"
@@ -32,14 +32,14 @@ function modo_informacion
 	echo "| El modelo en el que se basa la IA del ejercicios consiste  en emplear |"
 	echo "| la variable RANDOM para  q nos de un valor comprendido entre 0-26 y ese |"
 	echo "| valor sera la posicion de la letra en un vector abecedario definido, ademas |"
-echo "| se controlar si la letra esta repetida en ese caso se volvera a generar |”
+echo "| se controlar si la letra esta repetida en ese caso se volvera a generar |"
 echo "| otro numero para seleccionar otra letra, ademas se ve incorpora en |"
-echo "| en la zona de la frase un % de fallo basado tambien en RANDOM (de 0-10)|”   
+echo "| en la zona de la frase un % de fallo basado tambien en RANDOM (de 0-10)|" 
 echo "| y dependiendo del numero que se puede modificar  la probabilidad de fallo|"
-echo "| es menor o mayor, por ultimo cabe aclarar que a IA no resolveran la frase|” 
-echo “|al menos q el numero de letras faltantes sea uno dado en este caso es 5||"
-echo “| aunque se puede modificar para mas dificultad tanto el % de fallo y el |”
-echo “|el numero de letras ocultas que haya                |”
+echo "| es menor o mayor, por ultimo cabe aclarar que a IA no resolveran la frase|"
+echo "|al menos q el numero de letras faltantes sea uno dado en este caso es 5||"
+echo "| aunque se puede modificar para mas dificultad tanto el % de fallo y el |"
+echo "|el numero de letras ocultas que haya                |"
 	echo "|======================================================|"
 	echo "| ESTADISTICA LIBRE: porcentraje de rondas desiertas.  |"
 	echo "| Suma las rondas de todas las partidas del LOG y      |"
@@ -192,7 +192,7 @@ function mayusculas
 				CAR=${ABECEDARIO[$I]}
 			fi
 		done
-		MAYUS="MAYUS$CAR"
+		MAYUS="$MAYUS$CAR"
 		POS_M=$(($POS_M+1))
 	done
 }
@@ -394,12 +394,12 @@ function analizar_frase
 	TEXTO="${LINEA#*:}" #se queda con todo despues de los : para quedarse con la frase
 	for N in 1 2 3 4
 	do
-		if test "$CATEG"="${CATS[$N]}"
+		if test "$CATEG" = "${CATS[$N]}"
 		then
 			NIVEL=$N
 		fi
 	done
-	if test "$CATEG"="$LINEA"
+	if test "$CATEG" = "$LINEA"
 	then
 		NIVEL=0
 	elif frase_incorrecta "$TEXTO"
@@ -1187,7 +1187,7 @@ function opcion_jugar  {
 
 function dividir
 {
-	CENT=((($1 * 100 + $2 / 2) / $2 ))
+	CENT=$(( ($1 * 100 + $2 / 2) / $2 ))
 	FRAC=$(($CENT % 100))
 	if test $FRAC -lt 10
 	then
@@ -1350,7 +1350,7 @@ function modo_normal
 	menu_principal
 }
 
-comprobar_argumentos $# "1"
+comprobar_argumentos $# "$1"
 modo_normal
 
 
