@@ -669,39 +669,39 @@ function ImprimirFraseOculta()
 {
     echo "${FRASEOCULTA[*]}"
 }
-function IA_random() {
-        declare -g POSICION_LETRA
-    
+function IA_random()
+{
     local ARCHIVO="config.cfg"
     local LINEA_ESTR=$(grep "^ESTRATEGIA" "$ARCHIVO")
     local NUM_ESTR=${LINEA_ESTR#*=}
     local LETRA
     case "$NUM_ESTR" in
         0)
-            
-            POSICION_LETRA=$((POSICION_LETRA + 1))
-            LETRA=$POSICION_LETRA
+            for ((POS=0; POS<26; POS++)); do
+                LETRA=$POS
+                local USADA=0
+                for ((p=0; p<${#LETRAS_ESCRITAS[@]}; p++)); do
+                    if [[ "${ABECEDARIO[POS]}" == "${LETRAS_ESCRITAS[p]}" ]]; then
+                        USADA=1
+                    fi
+                done
+                if [[ $USADA -eq 0 ]]; then
+                    break
+                fi
+            done
             ;;
         1)
-            
-            LETRA=$((RANDOM % 27))
+            LETRA=$((RANDOM % 26))
             ;;
         2)
-
-
-            LETRA=$((RANDOM % 27))
+            LETRA=$((RANDOM % 26))
             ;;
         *)
-
-
             LETRA=0
             ;;
     esac
-
-
-    return $LETRA
+    echo $LETRA
 }
-
 function ImpimirVectorLetras()
 {
     echo "${LETRAS_ESCRITAS[*]}"
