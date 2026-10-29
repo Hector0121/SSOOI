@@ -722,10 +722,60 @@ function ImpimirVectorLetras()
 {
     echo "${LETRAS_ESCRITAS[*]}"
 }
+function EscribirLog()
+{
+    local ARCHIVO="config.cfg"
 
+    local LINEA_JUGADORES=$(grep "^JUGADORES" "$ARCHIVO")
+    local NUM_JUGADORES=${LINEA_JUGADORES#*=}
+    local LINEA_PFALLO=$(grep "^PFALLO" "$ARCHIVO")
+    local PFALLO=${LINEA_PFALLO#*=}
+    local LINEA_RESP=$(grep "^PRESPUESTA" "$ARCHIVO")
+    local PRESPUESTA=${LINEA_RESP#*=}
+    local LINEA_RONDAS=$(grep "^RONDAS" "$ARCHIVO")
+    local NUM_RONDAS=${LINEA_RONDAS#*=}
+    local LINEA_VIDAS=$(grep "^PVIDA" "$ARCHIVO")
+    local PVIDA=${LINEA_VIDAS#*=}
+    local LINEA_CAT=$(grep "^CATEGORIAS" "$ARCHIVO")
+    local CATEGORIAS=${LINEA_CAT#*=}
+    local LINEA_EST=$(grep "^ESTRATEGIA" "$ARCHIVO")
+    local ESTRATEGIA=${LINEA_EST#*=}
 
-function opcion_jugar  {
-	  
+    local RGJ1=${PERSONAS[1]:-0}
+    local RGJ2=${IA_1[1]:-0}
+    local RGJ3=${IA_2[1]:-0}
+    local RGJ4=${IA_3[1]:-0}
+
+    local GANADOR=$1
+    local NUM_LETRAS=$2
+    local FRASES_ACERTADAS=$3
+
+    printf '%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+        "$FECHA" "$HORA" "$DURACION" "$NUM_JUGADORES" "$NUM_RONDAS" \
+        "$PVIDA" "$PFALLO" "$PRESPUESTA" "$CATEGORIAS" "$ESTRATEGIA" \
+        "$GANADOR" "$RGJ1" "$RGJ2" "$RGJ3" "$RGJ4" \
+        "$NUM_LETRAS" "$FRASES_ACERTADAS" >> "$LOG"
+}
+
+function opcion_jugar  
+{
+            LOG="log/partidas.log"
+
+            mkdir -p "$(dirname "$LOG")" || { echo "Error: no se puede crear la carpeta del LOG"; exit 5; }
+
+            if [[ ! -s "$LOG" ]]; then
+                echo "$CABECERA" > "$LOG" || { echo "Error: no se puede crear el LOG"; exit 5; }
+            fi
+
+            if [[ ! -w "$LOG" ]]; then
+                echo "Error: no se puede escribir el LOG"
+                exit 5
+            fi
+            
+            local INICIO
+            INICIO=$(date +%s)
+            local FIN
+            local DURACION
            echo "Opción JUGAR"
            crear_jugadores
            echo "Jugadores IA creados"
@@ -748,23 +798,49 @@ function opcion_jugar  {
            local OPCION_JUEGO
            local JUGADOR
            local ACERTADO=0
-           
+           local FRASE_ANTERIOR
            local RONDA=1
+           local REP_NULOS=0
+           local FRASES_ACERTADAS=0
+           local NUM_LETRAS_TOTAL=0
             eval "declare -g -a LETRAS_ESCRITAS=()";
+            eval "declare -g -a FRASES_USADAS=()"
            
 
 
-           for ((k=0;k<NUM_RONDAS;k++)); do
+            for ((k=0;k<NUM_RONDAS;k++)); do
                 LETRAS_ESCRITAS=()
                CONTADOR=0
                ACERTADO=0
                RONDA=$((k+1))
                # Reset de vidas
                PERSONA[0]="$VIDAS_JUGADORES"
-               for ((i=1; i<NUM_JUGADORES; i++)); do
+                for ((i=1; i<NUM_JUGADORES; i++)); do
                     eval "IA_${i}[0]=\"$VIDAS_JUGADORES\""
                 done
-               llamar_frase
+                if [[ $RONDAS -gt ${FRASEV[3]}  ]];then
+                        echo "El numero de rondas es mayor a l numero de frases  en el dichero frases.dat"
+                        echo "Abortando juego"
+                        break
+                fi
+                FRASE_ANTERIOR=${FRASEV[1]}
+                FRASES_USADAS+=("$FRASE_ANTERIOR")
+                while true; do
+                    local FRAS_REPE=0
+                    llamar_frase
+                    local FRASE
+                    local LONG_FRASEUSADAS=${#FRASES_USADAS[@]}
+                        for (( m=0;m<LONG_FRASEUSADAS;m++ )); do
+                            if [[ "${FRASES_USADAS[m]}" == "${FRASESV[1]}" ]];then
+                                    FRAS_REPE=1
+                            fi
+                        done
+                    if [ $FRAS_REPE -eq 0 ]
+                     then
+                            break
+                    fi
+                done
+               
                echo "Frase escogida para nueva ronda"
                frase_oculta
                echo "Mostrando frase oculta:"
@@ -804,12 +880,12 @@ function opcion_jugar  {
 
                        
                          
-                           while true; do
+                        while true; do
                                JUGADOR=1
                                OPCION_JUEGO=0;
-                               if  [[ ${PERSONA[0]} -le 0 ]]; then
+                               if  [[ ${PERSONA[0]} -eq 0 ]]; then
                                     echo "No te quedan mas vidas eliminado del juego"
-                               break
+                                    break
                                fi
                                echo "Mostrando frase actual"
                                ImprimirFraseOculta
@@ -820,334 +896,357 @@ function opcion_jugar  {
                                echo " opcion: "
                                read OPCION_JUEGO
                                case "$OPCION_JUEGO" in
-                               1)
-                                   eval "declare -a POS=()";
-                                   local REP=0
-                                   local ENCONTRADA=0
-                                   local LETRA
-                                   local LONG_POS
-                                   local LONG_LETRASV=${#LETRAS_ESCRITAS[@]}
+                                    1)
+                                        eval "declare -a POS=()";
+                                        local REP=0
+                                        local ENCONTRADA=0
+                                        local LETRA
+                                        local LONG_POS
+                                        local LONG_LETRASV=${#LETRAS_ESCRITAS[@]}
 
 
 
 
-                                   while  true; do
-										local ENCONTRADA=0
-										echo "Introduce la letra"
-										read LETRA
+                                        while  true; do
+                                                local ENCONTRADA=0
+                                                echo "Introduce la letra"
+                                                read LETRA
 
 
 
 
-										mayusculas "$LETRA"
-										LETRA="$MAYUS"
+                                                mayusculas "$LETRA"
+                                                LETRA="$MAYUS"
 
 
 
 
-                                       if [[ "$LETRA" =~ [A-Z] ]]; then
-                                           
-                                         
-                                           for ((p=0;p<LONG_LETRASV;p++ ));do
-                                             
-                                               if [[ "$LETRA" == ${LETRAS_ESCRITAS[p]} ]]; then
-                                                   ENCONTRADA=1
-                                                 
-                                               fi
-                                           done
-                                         
-                                           if [[ $ENCONTRADA -eq 0 ]]; then
-                                               break
-                                           fi
-                                           if [[ $ENCONTRADA -eq 1 ]]; then
-                                                   echo "Letra repetida, introduce otra"
-                           
-                                                 
-                                           fi
-                                     
-                                       else
-                                           echo "Error no has introducido una letra"
-                                       fi
-                                   done
-                                    LETRAS_ESCRITAS+=("$LETRA")
+                                            if [[ "$LETRA" =~ [A-Z] ]]; then
+                                                
+                                                
+                                                for ((p=0;p<LONG_LETRASV;p++ ));do
+                                                    
+                                                    if [[ "$LETRA" == ${LETRAS_ESCRITAS[p]} ]]; then
+                                                        ENCONTRADA=1
+                                                        
+                                                    fi
+                                                done
+                                                
+                                                if [[ $ENCONTRADA -eq 0 ]]; then
+                                                    break
+                                                fi
+                                                if [[ $ENCONTRADA -eq 1 ]]; then
+                                                        echo "Letra repetida, introduce otra"
+                                
+                                                        
+                                                fi
+                                            
+                                            else
+                                                echo "Error no has introducido una letra"
+                                            fi
+                                        done
+                                            LETRAS_ESCRITAS+=("$LETRA")
 
 
-                                 
-                                   for((j=0;j<FRASEV[2];j++)); do
+                                        
+                                        for ((j=0;j<FRASEV[2];j++)); do
 
-                                       if [[ "$LETRA" == ${FRAS_DESCOMPUESTA[j]} ]]; then
-                                           POS+=("$j")
-                                           REP=$((REP +1))
-                                       fi
-                                   done
-                                   if [[ $REP -eq 0 ]]; then
-                                       echo " Letra no valida, salto de turno "
-                                       PERSONA[0]=$((PERSONA[0] - $PFALLOS))
-                                       break
-                                   fi
-                                   LONG_POS=${#POS[@]}
+                                            if [[ "$LETRA" == ${FRAS_DESCOMPUESTA[j]} ]]; then
+                                                POS+=("$j")
+                                                REP=$((REP +1))
+                                            fi
+                                        done
+                                        if [[ $REP -eq 0 ]]; then
+                                            echo " Letra no valida, salto de turno "
+                                            PERSONA[0]=$((PERSONA[0] - $PFALLOS))
+                                                if [[ ${PERSONA[0]} -le 0 ]];then
+                                                    PERSONA[0]=0
+                                                fi
+                                                break
+                                        fi
+                                        LONG_POS=${#POS[@]}
 
-                                   for ((x=0;x<LONG_POS;x++)); do
-                                        FRASEOCULTA[POS[x]]="$LETRA"
-                                     
-                                   done
-                                   POS=()
-                                   REP=0
-                                   local FALTAN=0
-                                   for ((x=0;x<FRASEV[2];x++)); do
-                                       if [[ "${FRASEOCULTA[x]}" == "_" ]]; then
-                                           FALTAN=1
-                                           break  
-                                       fi
-                                   done
-                                   if [[ $FALTAN -eq 0 ]]; then
-                                       echo "Has completado la frase!!"
-                                       PERSONA[1]=$(( PERSONA[1] + 1 ))
-                                       ACERTADO=1
-                                       break      
-                                   fi
-                                   ;;
-                               2)
-                                   
-                                   local FRASE_DESCUBRIR
-                                   while true; do
-                                       echo -n "Introduce la frase: "
-                                       read FRASE_DESCUBRIR
-                                 
-                                       mayusculas "$FRASE_DESCUBRIR"
-                                       FRASE_DESCUBRIR="$MAYUS"
-                                       local LONGI=${#FRASE_DESCUBRIR}
-                                       if [[ "$FRASE_DESCUBRIR" =~ ^[A-ZÑ\ ]+$ ]] && [[ $LONGI -eq ${FRASEV[2]} ]]; then
-                                             break
-                                       else
-                                           echo "Error al introducir la frase"
-                                       fi
-                                   done
-                                         
-
-
-
-
-
-
-
-
-                                       if [[ "$FRASE_DESCUBRIR" ==  "${FRASEV[1]}"  ]]; then
-                                               echo "FRASE CORRECTA!!"
-                                               PERSONA[1]=$(( PERSONA[1] + 1 ))
-                                               ACERTADO=1
-                                               
-                                        else
-                                               echo "ERROR:FRASE INCORRECTA"
-                                               PERSONA[0]=$((PERSONA[0] - $PRESPUESTA))
-                                               echo "Siguiente jugador"
-                                               
-                                           fi
-                                    break
-                                   ;;
-                               3)
-                                   break
-                                   ;;
-                                *)
-                                    echo "Opcion no valida"
-                                    ;;
+                                        for ((x=0;x<LONG_POS;x++)); do
+                                                FRASEOCULTA[POS[x]]="$LETRA"
+                                        done
+                                        POS=()
+                                        REP=0
+                                        local FALTAN=0
+                                        for ((x=0;x<FRASEV[2];x++)); do
+                                            if [[ "${FRASEOCULTA[x]}" == "_" ]]; then
+                                                FALTAN=1
+                                                break  
+                                            fi
+                                        done
+                                        if [[ $FALTAN -eq 0 ]]; then
+                                            echo "Has completado la frase!!"
+                                            PERSONA[1]=$(( PERSONA[1] + 1 ))
+                                            ACERTADO=1
+                                            break      
+                                        fi
+                                        ;;
+                                    2)
+                                        
+                                        local FRASE_DESCUBRIR
+                                        while true; do
+                                            echo -n "Introduce la frase: "
+                                            read FRASE_DESCUBRIR
+                                        
+                                            mayusculas "$FRASE_DESCUBRIR"
+                                            FRASE_DESCUBRIR="$MAYUS"
+                                            local LONGI=${#FRASE_DESCUBRIR}
+                                            if [[ "$FRASE_DESCUBRIR" =~ ^[A-ZÑ\ ]+$ ]] && [[ $LONGI -eq ${FRASEV[2]} ]]; then
+                                                    break
+                                            else
+                                                echo "Error al introducir la frase"
+                                            fi
+                                        done
+                                                if [[ "$FRASE_DESCUBRIR" ==  "${FRASEV[1]}"  ]]; then
+                                                    echo "FRASE CORRECTA!!"
+                                                    PERSONA[1]=$(( PERSONA[1] + 1 ))
+                                                    ACERTADO=1
+                                                    
+                                                else
+                                                    echo "ERROR:FRASE INCORRECTA"
+                                                    PERSONA[0]=$((PERSONA[0] - $PRESPUESTA))
+                                                        if [[ ${PERSONA[0]} -le 0 ]];then
+                                                            PERSONA[0]=0
+                                                        fi
+                                                    echo "Siguiente jugador"
+                                                    break
+                                                    
+                                                fi
+                                        ;;
+                                    3)
+                                        break
+                                        ;;
+                                        *)
+                                            echo "Opcion no valida"
+                                            ;;
                                esac
-                           done
+                        done
                        
                        if [[ $ACERTADO -eq 1 ]]; then
                            break
                        fi
                        
-    for ((i=1; i<NUM_JUGADORES; i++)); do
-    if [[ $ACERTADO -eq 1 ]]; then  
-    break
-	fi
-		while true; do
-			JUGADOR=$i
-			local VIDA_ACTUAL
-			eval "VIDA_ACTUAL=\${IA_${i}[0]}"
-			
-			if [[ "$VIDA_ACTUAL" -le 0 ]]; then
-				echo "IA_$i esta eliminada"
-				break
-			fi
-
-
-			local NUM_ESTR=$ESTRATEGIA
-
-
-			local COUNT_INCG=0
-			for ((x=0; x<${FRASEV[2]}; x++)); do
-				if [[ "${FRASEOCULTA[x]}" == "_" ]]; then
-					COUNT_INCG=$((COUNT_INCG + 1))
-				fi
-			done
-
-
-			echo "Mostrando frase actual"
-			ImprimirFraseOculta
-			echo "IA_$JUGADOR es su turno (Estrategia: $NUM_ESTR)"
-
-
-			# Definir la opción de juego según la estrategia
-			case "$NUM_ESTR" in
-				0 | 1)
-					
-					if [[ $COUNT_INCG -le 1 ]]; then
-						OPCION_JUEGO=2  
-					else
-						OPCION_JUEGO=1  
-					fi
-					;;
-				2)
-					
-					if [[ $COUNT_INCG -le 3 ]]; then
-						OPCION_JUEGO=2
-					else
-						OPCION_JUEGO=1
-					fi
-					;;
-				*)
-					OPCION_JUEGO=1
-					;;
-			esac
-
-
-			# Procesar la opción elegida (1: Letra, 2: Resolver)
-			case "$OPCION_JUEGO" in
-				1)
-					echo "Introduciendo letra ...."
-					eval "declare -a POS=()"
-					local LETRA_RANDM
-					local REP=0
-					local ENCONTRADA=0
-					local LETRA_ABC
-					local LONG_POS
-					local LONG_LETRASV=${#LETRAS_ESCRITAS[@]}
-				
-					while true; do
-						ENCONTRADA=0
-						LETRA_RANDM=$(IA_random)
-						LETRA_ABC=${ABECEDARIO[LETRA_RANDM]}
-						
-						for ((p=0; p<LONG_LETRASV; p++)); do
-							if [[ "$LETRA_ABC" == "${LETRAS_ESCRITAS[p]}" ]]; then
-								ENCONTRADA=1
-							fi
-						done
-						
-						if [[ $ENCONTRADA -eq 0 ]]; then
-							break
-						fi
-					done
-
-
-					echo "La letra elegida es: $LETRA_ABC"
-					LETRAS_ESCRITAS+=("$LETRA_ABC")
-
-
-					for ((j=0; j<${FRASEV[2]}; j++)); do
-						if [[ "$LETRA_ABC" == "${FRAS_DESCOMPUESTA[j]}" ]]; then
-							POS+=("$j")
-							REP=$((REP + 1))
-						fi
-					done
-
-
-					if [[ $REP -eq 0 ]]; then
-						echo "Letra no válida, salto de turno"
-						eval "IA_${i}[0]=\$(( IA_${i}[0] - $PFALLOS ))"
-						POS=()
-						break          
-					fi
-
-
-					LONG_POS=${#POS[@]}
-					for ((x=0; x<LONG_POS; x++)); do
-						FRASEOCULTA[POS[x]]="$LETRA_ABC"
-					done
-
-
-					POS=()
-					REP=0
-					local FALTAN=0
-
-
-					for ((x=0; x<${FRASEV[2]}; x++)); do
-						if [[ "${FRASEOCULTA[x]}" == "_" ]]; then
-							FALTAN=1
-							break
-						fi
-					done
-
-
-					if [[ $FALTAN -eq 0 ]]; then
-						echo "IA_$i ha completado la frase!!"
-						eval "IA_${i}[1]=\$(( IA_${i}[1] + 1 ))"
-						ACERTADO=1
-						break
-					fi
-					;;
-				2)
-					echo "Adivinando frase..."
-					local PORCTJ_FALLO=$((RANDOM % 10))
-					local LVL_RESTRICCION=2
-					local FRASE_ADV
-
-
-					if [[ $PORCTJ_FALLO -le $LVL_RESTRICCION ]]; then
-						echo "Frase incorrecta, siguiente jugador"
-						eval "IA_${i}[0]=\$(( IA_${i}[0] - $PRESPUESTA ))"
-						break
-					else  
-						FRASE_ADV=${FRASEV[1]}
-						echo "La frase es $FRASE_ADV"
-						echo "¡Correcto!"
-						eval "IA_${i}[1]=\$(( IA_${i}[1] + 1 ))"
-						ACERTADO=1
-						break
-					fi
-					;;
-			esac
-		done
-	done                               
+                        for ((i=1; i<NUM_JUGADORES; i++)); do
                     
-                   #Concidines de salida de cada ronda o gana o ninguno gana
-                   local CONTADOR_VIDAS_IA=0
-                   for ((c=1;c<NUM_JUGADORES;c++)); do
-                           local VIDA_IA
-                           eval "VIDA_IA=\${IA_${c}[0]}"
-                           if [[ "$VIDA_IA" -le 0 ]]; then
-                               CONTADOR_VIDAS_IA=$((CONTADOR_VIDAS_IA + 1))
-                           fi
-                   done
-                   if [[ $ACERTADO -eq 1 ]]; then
-                           ACERTADO=0
-                           LETRAS_ESCRITAS=()
-                           RONDA=$((RONDA +1))
-                           break
-                   fi
-                   local VIDA_PERSONA="${PERSONA[0]}"
-                    if [[ $VIDA_PERSONA -le 0 && $CONTADOR_VIDAS_IA -eq $((NUM_JUGADORES-1)) ]]; then
-                           echo " Nadie gana puntos  en esta ronda"
-                           ACERTADO=0
-                           RONDA=$((RONDA +1))
-                           LETRAS_ESCRITAS=()
-                           break
-                   fi
-               done
-           done
-   echo "----- RESULTADOS -----"
-       local GANADOR="Jugador 1"
-       local MAX_PUNTOS=${PERSONA[1]}
-       local VIDAS_GANADOR=${PERSONA[0]}
-       local PUNTOS_IA
-       local VIDAS_FINAL_IA
+                    
+                            while true; do
+                                JUGADOR=$i
+                                local VIDA_ACTUAL
+                                eval "VIDA_ACTUAL=\${IA_${i}[0]}"
+                                
+                                if [[ "$VIDA_ACTUAL" -eq 0 ]]; then
+                                    echo "IA_$i esta eliminada"
+                                    break
+                                fi
 
 
+                                local NUM_ESTR=$ESTRATEGIA
+                                
 
 
-     
+                                local COUNT_INCG=0
+                                for ((x=0; x<${FRASEV[2]}; x++)); do
+                                    if [[ "${FRASEOCULTA[x]}" == "_" ]]; then
+                                        COUNT_INCG=$((COUNT_INCG + 1))
+                                    fi
+                                done
+
+
+                                echo "Mostrando frase actual"
+                                ImprimirFraseOculta
+                                echo "IA_$JUGADOR es su turno (Estrategia: $NUM_ESTR)"
+
+
+                                # Definir la opción de juego según la estrategia
+                                case "$NUM_ESTR" in
+                                    0 | 1)
+                                        
+                                        if [[ $COUNT_INCG -le 1 ]]; then
+                                            OPCION_JUEGO=2  
+                                        else
+                                            OPCION_JUEGO=1  
+                                        fi
+                                        ;;
+                                    2)
+                                        
+                                        if [[ $COUNT_INCG -le 3 ]]; then
+                                            OPCION_JUEGO=2
+                                        else
+                                            OPCION_JUEGO=1
+                                        fi
+                                        ;;
+                                    *)
+                                        OPCION_JUEGO=1
+                                        ;;
+                                esac
+
+
+                                # Procesar la opción elegida (1: Letra, 2: Resolver)
+                                case "$OPCION_JUEGO" in
+                                    1)
+                                        echo "Introduciendo letra ...."
+                                        eval "declare -a POS=()"
+                                        local LETRA_RANDM
+                                        local REP=0
+                                        local ENCONTRADA=0
+                                        local LETRA_ABC
+                                        local LONG_POS
+                                        local LONG_LETRASV=${#LETRAS_ESCRITAS[@]}
+                                    
+                                        while true; do
+                                            ENCONTRADA=0
+                                            LETRA_RANDM=$(IA_random)
+                                            LETRA_ABC=${ABECEDARIO[LETRA_RANDM]}
+                                            
+                                            for ((p=0; p<LONG_LETRASV; p++)); do
+                                                if [[ "$LETRA_ABC" == "${LETRAS_ESCRITAS[p]}" ]]; then
+                                                    ENCONTRADA=1
+                                                fi
+                                            done
+                                            
+                                            if [[ $ENCONTRADA -eq 0 ]]; then
+                                                break
+                                            fi
+                                        done
+
+
+                                        echo "La letra elegida es: $LETRA_ABC"
+                                        LETRAS_ESCRITAS+=("$LETRA_ABC")
+
+
+                                        for ((j=0; j< ${FRASEV[2]}; j++)); do
+                                            if [[ "$LETRA_ABC" == "${FRAS_DESCOMPUESTA[j]}" ]]; then
+                                                POS+=("$j")
+                                                REP=$((REP + 1))
+                                            fi
+                                        done
+
+
+                                        if [[ $REP -eq 0 ]]; then
+                                            local VIDAS_COMPROBAR
+                                            local VIDA_0=0
+                                            echo "Letra no válida, salto de turno"
+                                            eval "VIDAS_COMPROBAR=\$(( IA_${i}[0] - $PFALLOS ))"
+                                            eval "IA_${i}[0]=\$VIDAS_COMPROBAR"
+                                                    if [ $VIDAS_COMPROBAR -le 0]
+                                                    then
+                                                        eval "IA_${i}[0]=\$VIDA_0"
+                                                    fi
+                                            POS=()          
+                                        fi
+
+
+                                        LONG_POS=${#POS[@]}
+                                        for ((x=0; x<LONG_POS; x++)); do
+                                            FRASEOCULTA[POS[x]]="$LETRA_ABC"
+                                        done
+
+
+                                        POS=()
+                                        REP=0
+                                        local FALTAN=0
+
+
+                                        for (( x=0; x< ${FRASEV[2]}; x++ )); do
+                                            if [[ "${FRASEOCULTA[x]}" == "_" ]]; then
+                                                FALTAN=1
+                                                break
+                                            fi
+                                        done
+
+
+                                        if [[ $FALTAN -eq 0 ]]; then
+                                            echo "IA_$i ha completado la frase!!"
+                                            eval "IA_${i}[1]=\$(( IA_${i}[1] + 1 ))"
+                                            ACERTADO=1
+                                        
+                                        fi
+                                        ;;
+                                    2)
+                                        echo "Adivinando frase..."
+                                        local PORCTJ_FALLO=$((RANDOM % 10))
+                                        local LVL_RESTRICCION=2
+                                        local FRASE_ADV
+
+
+                                        if [[ $PORCTJ_FALLO -le $LVL_RESTRICCION ]]; then
+                                            
+                                            local VIDAS_COMPROBAR
+                                            local VIDA_0=0
+                                            echo "Frase incorrecta, siguiente jugador"
+                                            eval "VIDAS_COMPROBAR=\$(( IA_${i}[0] - $PRESPUESTA ))"
+                                            
+                                            eval "IA_${i}[0]=\$VIDAS_COMPROBAR"
+                                                    if [ $VIDAS_COMPROBAR -le 0]
+                                                    then
+                                                        eval "IA_${i}[0]=\$VIDA_0"
+                                                    fi
+                                            break
+                                        else  
+                                            FRASE_ADV=${FRASEV[1]}
+                                            echo "La frase es $FRASE_ADV"
+                                            echo "¡Correcto!"
+                                            eval "IA_${i}[1]=\$(( IA_${i}[1] + 1 ))"
+                                            ACERTADO=1
+                                            break
+                                        fi
+                                        ;;
+                                esac
+                            done
+                        done                               
+                            
+                        #Concidines de salida de cada ronda o gana o ninguno gana
+                        local CONTADOR_VIDAS_IA=0
+                        for ((c=1;c<NUM_JUGADORES;c++)); do
+                                local VIDA_IA
+                                eval "VIDA_IA=\${IA_${c}[0]}"
+                                if [[ "$VIDA_IA" -le 0 ]]; then
+                                    CONTADOR_VIDAS_IA=$((CONTADOR_VIDAS_IA + 1))
+                                fi
+                        done
+                        if [[ $ACERTADO -eq 1 ]]; then
+                                ACERTADO=0
+                                FRASES_ACERTADAS=$((FRASES_ACERTADAS +1 ))
+                                NUM_LETRAS_TOTAL=$((${#LETRAS_ESCRITAS[@]} + NUM_LETRAS_TOTAL))
+                                LETRAS_ESCRITAS=()
+                                RONDA=$((RONDA +1 ))
+                                break
+                        fi
+                        local VIDA_PERSONA="${PERSONA[0]}"
+                        if [[ $VIDA_PERSONA -le 0 && $CONTADOR_VIDAS_IA -eq $((NUM_JUGADORES-1)) ]]; then
+                            echo " Nadie gana puntos  en esta ronda"
+                            ACERTADO=0
+                            REP_NULOS=$((REP_NULOS + 1 ))
+                            RONDA=$((RONDA + 1))
+                            LETRAS_ESCRITAS=()
+                                
+                        fi
+                    
+                
+            done
+            done
+            FIN=$(date +%s)
+            DURACION=$((FIN - INICIO))
+        
+        
+        #Resultados
+        
+        echo "----- RESULTADOS -----"
+        local GANADOR="Jugador 1"
+        local MAX_PUNTOS=${PERSONA[1]}
+        local VIDAS_GANADOR=${PERSONA[0]}
+        local PUNTOS_IA
+        local VIDAS_FINAL_IA
+        local NUM_GANADOR=1
+        local FLAG=0
+        if [[ REP_NULOS -eq 0 ]]; then
+            echo "Nadie ha acertado ninguna frase"
+            break
+        fi
        for ((i=1; i<NUM_JUGADORES; i++)); do
            eval "PUNTOS_IA=\${IA_${i}[1]}"
            eval "VIDAS_FINAL_IA=\${IA_${i}[0]}"
@@ -1156,80 +1255,33 @@ function opcion_jugar  {
                MAX_PUNTOS=$PUNTOS_IA
                VIDAS_GANADOR=$VIDAS_FINAL_IA
                GANADOR="IA $i"
-         
-         
-           elif [[ $PUNTOS_IA -eq $MAX_PUNTOS ]]; then
-               if [[ $VIDAS_FINAL_IA -gt $VIDAS_GANADOR ]]; then
-                   MAX_PUNTOS=$PUNTOS_IA
-                   VIDAS_GANADOR=$VIDAS_FINAL_IA
-                   GANADOR="IA $i"
-             
-               fi
-           fi
-       done
+               NUM_GANADOR=$(( i + 1))
+               FLAG=1
+            fi
+        done
 
-
-
-
-     
+        if [ $FLAG -eq 0]
+        then
+            for ((i=1; i<NUM_JUGADORES; i++)); do
+                eval "PUNTOS_IA=\${IA_${i}[1]}"
+                eval "VIDAS_FINAL_IA=\${IA_${i}[0]}"
+                if [[ $VIDAS_FINAL_IA -gt $VIDAS_GANADOR ]]; then
+                    MAX_PUNTOS=$PUNTOS_IA
+                    VIDAS_GANADOR=$VIDAS_FINAL_IA
+                    GANADOR="IA $i"
+                    NUM_GANADOR=0
+                
+                fi
+              
+            done
+        fi
        echo "============================"
        echo "El ganador es $GANADOR con $MAX_PUNTOS puntos"
 
+        #mover despues arriba
+       EscribirLog NUM_GANADOR LETRAS_ESCRITAS FRASES_ACERTADAS
+       
 
-}
-
-
-
-
-
-
-
-
-
-
-function dividir
-{
-	CENT=$(( ($1 * 100 + $2 / 2) / $2 ))
-	FRAC=$(($CENT % 100))
-	if test $FRAC -lt 10
-	then
-		FRAC="0$FRAC"
-	fi
-	DEC="$(($CENT / 100)),$FRAC"
-}
-
-function columna
-{
-	grep "|" "$LOG" | grep -v "^FECHA" | cut -d "|" -f $1
-}
-
-function sumar
-{
-	SUMA=0
-	for V in `columna $1`
-	do
-		SUMA=$(($SUMA+$V))
-	done
-}
-
-function mas_usados
-{
-	MAXIMO=0
-	for V in $2
-	do
-		VECES[$V]=`columna $1 | grep "^$V\$" | wc -l`
-		if test ${VECES[$V]} -gt $MAXIMO
-		then
-			MAXIMO=${VECES[$V]}
-		fi
-	done
-	for V in $2
-	do
-		if test ${VECES[$V]} -eq $MAXIMO
-		then
-			echo "   $3=$V ($MAXIMO partidas)"
-		fi
-	done
 }
 
 function opcion_estadisticas
