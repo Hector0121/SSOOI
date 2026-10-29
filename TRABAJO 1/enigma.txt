@@ -673,7 +673,7 @@ function IA_random() {
         declare -g POSICION_LETRA
     
     local ARCHIVO="config.cfg"
-    local LINEA_ESTR=(grep"ESTRATEGIA""ARCHIVO")
+    local LINEA_ESTR=$(grep "^ESTRATEGIA" "$ARCHIVO")
     local NUM_ESTR=${LINEA_ESTR#*=}
     local LETRA
     case "$NUM_ESTR" in
@@ -945,7 +945,7 @@ function opcion_jugar  {
                            break
                        fi
                        
-    for ((i=1; i<NUM_JUG; i++)); do
+    for ((i=1; i<NUM_JUGADORES; i++)); do
     
     
 		while true; do
@@ -959,10 +959,7 @@ function opcion_jugar  {
 			fi
 
 
-			# Leer la estrategia actual desde el archivo de configuración
-			local ARCHIVO="config.cfg"
-			local LINEA_ESTR=(grep"ESTRATEGIA""ARCHIVO")
-			local NUM_ESTR=${LINEA_ESTR#*=}
+			local NUM_ESTR=$ESTRATEGIA
 			NUM_ESTR=(echo"NUM_ESTR" | tr -d '[:space:]')
 
 
@@ -1021,7 +1018,7 @@ function opcion_jugar  {
 						LETRA_ABC=${ABECEDARIO[LETRA_RANDM]}
 						
 						for ((p=0; p<LONG_LETRASV; p++)); do
-							if [[ "LETRA_ABC" == "${LETRAS_ESCRITAS[p]}" ]]; then
+							if [[ "$LETRA_ABC" == "${LETRAS_ESCRITAS[p]}" ]]; then
 								ENCONTRADA=1
 							fi
 						done
@@ -1037,7 +1034,7 @@ function opcion_jugar  {
 
 
 					for ((j=0; j<${FRASEV[2]}; j++)); do
-						if [[ "LETRA_ABC" == "${FRAS_DESCOMPUESTA[j]}" ]]; then
+						if [[ "$LETRA_ABC" == "${FRAS_DESCOMPUESTA[j]}" ]]; then
 							POS+=("$j")
 							REP=$((REP + 1))
 						fi
