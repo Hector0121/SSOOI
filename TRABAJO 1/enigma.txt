@@ -15,10 +15,12 @@ then
 		echo "Uso: enigma.sh [-g]"
 		exit 1
 	fi
+fi
 }
 
 #MODO_INFORMACION
-function modo_informacion{
+function modo_informacion
+{
 	echo "|------------------------------------------------------|"
 	echo "|               MODO DE INFORMACIÓN                    |"
 	echo "|------------------------------------------------------|"
@@ -26,10 +28,18 @@ function modo_informacion{
 	echo "| Integrante 1: Héctor Vicente González                |"
 	echo "| Integrante 2: Andrés Romo Gómez                      |"
 	echo "|======================================================|"
-	echo "| ESTRATEGIA 2 (IA propia en frecuiencia al castellano)|"
-	echo "|	La IA pide las letras de mas a menos frecuentes 	 |"
-	echo "| saltandose las ya usadas en la ronda. Asi acierta mas|"
-	echo "| , conserva el turno y pierde menos puntos de vida.   |"
+	echo "| ESTRATEGIA 2 (IA propia en frecuencia al castellano)|"
+	echo "| El modelo en el que se basa la IA del ejercicios consiste  en emplear |"
+	echo "| la variable RANDOM para  q nos de un valor comprendido entre 0-26 y ese |"
+	echo "| valor sera la posicion de la letra en un vector abecedario definido, ademas |"
+echo "| se controlar si la letra esta repetida en ese caso se volvera a generar |”
+echo "| otro numero para seleccionar otra letra, ademas se ve incorpora en |"
+echo "| en la zona de la frase un % de fallo basado tambien en RANDOM (de 0-10)|”   
+echo "| y dependiendo del numero que se puede modificar  la probabilidad de fallo|"
+echo "| es menor o mayor, por ultimo cabe aclarar que a IA no resolveran la frase|” 
+echo “|al menos q el numero de letras faltantes sea uno dado en este caso es 5||"
+echo “| aunque se puede modificar para mas dificultad tanto el % de fallo y el |”
+echo “|el numero de letras ocultas que haya                |”
 	echo "|======================================================|"
 	echo "| ESTADISTICA LIBRE: porcentraje de rondas desiertas.  |"
 	echo "| Suma las rondas de todas las partidas del LOG y      |"
@@ -42,36 +52,48 @@ function modo_informacion{
 #MODO_NORMAL
 
 
-function inicializar_datos{
-CFG="config.cfg"
-FRASES="frases.dat"
-PARAMETROS="JUGADORES RONDAS PVIDA PFALLO PRESPUESTA CATEGORIAS ESTRATEGIA LOG"
-CATS[1]=REFRAN
-CATS[2]=PELICULA
-CATS[3]=MUSICA
-CATS[4]=DEPORTE
-AYUDA[1]="entre 2 y 4"
-AYUDA[2]="entero positivo"
-AYUDA[3]="entre 50 y 100"
-AYUDA[4]="entre 5 y 10"
-AYUDA[5]="PFALLO < PRESPUESTA < PVIDA"
-AYUDA[6]="entre 1 y 4"
-AYUDA[7]="0 alfabética, 1 aleatoria, 2 propia"
-AYUDA[8]="ruta del fichero de registro"
-NOMBRE[0]="ESTRATEGIA=0 (selección alfabética)"
-NOMBRE[1]="ESTRATEGIA=1 (selección aleatoria)"
-NOMBRE[2]="ESTRATEGIA=2 (estrategia propia)"
-NOMBRE[11]="CATEGORIAS=1 (Refranes)"
-NOMBRE[12]="CATEGORIAS=2 (Refranes y Películas)"
-NOMBRE[13]="CATEGORIAS=3 (Refranes, Películas y Música)"
-NOMBRE[14]="CATEGORIAS=4 (Refranes, Películas, Música y Deportes)"
-ABECEDARIO="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-MINUSCULAS="abcdefghijklmnopqrstuvwxyz"
-FRECUENCIA="EAOSRNIDLCTUMPBGVYQHFZJXKW"
-CABECERA="FECHA|HORA|TPO|JUGADORES|RONDAS|PVIDA|PFALLO|PRESPUESTA|CATEGORIAS|ESTRATEGIA|GANADOR|RONDAS_GANADAS_J1|RONDAS_GANADAS_J2|RONDAS_GANADAS_J3|RONDAS_GANADAS_J4|LETRAS_UTILIZADAS|FRASES_RESUELTAS"
+function inicializar_datos
+{
+	CFG="config.cfg"
+	FRASES="frases.dat"
+	PARAM[1]=JUGADORES
+	PARAM[2]=RONDAS
+	PARAM[3]=PVIDA
+	PARAM[4]=PFALLO
+	PARAM[5]=PRESPUESTA
+	PARAM[6]=CATEGORIAS
+	PARAM[7]=ESTRATEGIA
+	PARAM[8]=LOG
+	AYUDA[1]="entre 2 y 4"
+	AYUDA[2]="entero positivo"
+	AYUDA[3]="entre 50 y 100"
+	AYUDA[4]="entre 5 y 10"
+	AYUDA[5]="PFALLO < PRESPUESTA < PVIDA"
+	AYUDA[6]="entre 1 y 4"
+	AYUDA[7]="0 alfabética, 1 aleatoria, 2 propia"
+	AYUDA[8]="ruta del fichero de registro"
+	CATS[1]=REFRAN
+	CATS[2]=PELICULA
+	CATS[3]=MUSICA
+	CATS[4]=DEPORTE
+	NOMBRE[0]="ESTRATEGIA=0 (selección alfabética)"
+	NOMBRE[1]="ESTRATEGIA=1 (selección aleatoria)"
+	NOMBRE[2]="ESTRATEGIA=2 (estrategia propia)"
+	NOMBRE[11]="CATEGORIAS=1 (Refranes)"
+	NOMBRE[12]="CATEGORIAS=2 (Refranes y Películas)"
+	NOMBRE[13]="CATEGORIAS=3 (Refranes, Películas y Música)"
+	NOMBRE[14]="CATEGORIAS=4 (Refranes, Películas, Música y Deportes)"
+	ABECEDARIO=("A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z")
+	MINUSCULAS=("a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z") 
+	
+
+	CABECERA="FECHA|HORA|TPO|JUGADORES|RONDAS|PVIDA|PFALLO|PRESPUESTA|CATEGORIAS|ESTRATEGIA|GANADOR|RONDAS_GANADAS_J1|RONDAS_GANADAS_J2|RONDAS_GANADAS_J3|RONDAS_GANADAS_J4|LETRAS_UTILIZADAS|FRASES_RESUELTAS"
 }
 
-function comprobar_ficheros{
+
+
+function comprobar_ficheros
+{
 if test ! -f "$CFG"
 then
     echo "Error: no existe el fichero config.cfg"
@@ -109,7 +131,8 @@ then
 fi
 }
 
-function leer{
+function leer
+{
 	ENTRADA=""
 	if read ENTRADA
 	then
@@ -120,12 +143,14 @@ function leer{
 	exit 1
 }
 
-function pausa{
+function pausa
+{
 	echo -n "Pulse una tecla para continuar."
 	leer
 }
 
-function leer_linea{
+function leer_linea
+{
 	LINEA=""
 	if read LINEA
 	then
@@ -133,26 +158,27 @@ function leer_linea{
 	fi
 	test -n "$LINEA"
 }
-									#despues se borraran los comentario tranqui hectorcito
-function mayusculas                       # Recibe el texto en $1 y deja el resultado en MAYUS
-{                                         
-	MAYUS=""                              # Vacía MAYUS
-	POS_M=0                               # Posición del carácter que se está mirando (empieza en 0, el primero)
-	while test $POS_M -lt ${#1}           # Repite mientras POS_M sea menor que la longitud del texto. la long del texto es #1
-	do                                    
-		CAR="${1:$POS_M:1}"               # Coge 1 carácter de $1 a partir de la posición POS_M (sesión 4: ${VAR:inicio:longitud})
-		case "$CAR" in                    # Mira qué carácter es
-			[abcdefghijklmnopqrstuvwxyz] )  # Solo entra aquí si es una letra minúscula de la a a la z
-				PREVIO="${MINUSCULAS%%$CAR*}"     # De "abcd...z" borra desde la letra hasta el final: quedan las letras ANTERIORES a ella
-				CAR="${ABECEDARIO:${#PREVIO}:1}"  # ${#PREVIO} = cuántas letras hay antes = su posición; coge esa misma posición en "ABCD...Z"
-				;;                      
-		esac                              # Si no era minúscula CAR se queda igual
-		MAYUS="$MAYUS$CAR"                # Añade el carácter (convertido o no) al final del resultado
-		POS_M=$(($POS_M+1))               # Pasa a la siguiente posición
-	done                                  # vuelve al while
-}                                         # El resultado queda en la variable MAYUS
 
-function entero # ahora sigo 
+function mayusculas
+{
+	MAYUS=""
+	POS_M=0
+	while test $POS_M -lt ${#1}
+	do
+		CAR="${1:$POS_M:1}"
+		for I in ${!MINUSCULAS[*]}
+		do
+			if test "CAR"="{MINUSCULAS[$I]}"
+			then
+				CAR=${ABECEDARIO[$I]}
+			fi
+		done
+		MAYUS="MAYUSCAR"
+		POS_M=((POS_M+1))
+	done
+}
+
+function entero
 {
 	NUM="$1"
 	case "$NUM" in
@@ -160,15 +186,1106 @@ function entero # ahora sigo
 			return 1
 			;;
 	esac
-	while test ${#NUM} -gt 1 -a "${NUM:0:1}" = "0"
+	while test #NUM-gt1-a"{NUM:0:1}" = "0"
 	do
 		NUM="${NUM:1}"
 	done
 	test ${#NUM} -le 9
 }
 
-function menu_principal{
-	while true
+function rango
+{
+	if entero "${VALOR[$1]}"
+	then
+		if test $NUM -ge $2 -a $NUM -le $3
+		then
+			VALOR[1]=NUM
+			return 0
+		fi
+	fi
+	echo "Error: ${PARAM[$1]} debe ser $4 (valor leido: \"${VALOR[$1]}\")."
+	CONFIG_OK=1
+	return 1
+}
+
+
+
+function cargar_config
+{
+	unset VALOR # Borra el vector VALOR para empezar desde 0
+	LINEAS_MAL=0
+	while leer_linea
+	do
+		ENCONTRADO=0
+		if test -z "$LINEA" #al usar -z, si la cadena esta vacia es verdadero, sino falso
+		then
+			ENCONTRADO=1
+		fi
+		for N in 1 2 3 4 5 6 7 8
+		do
+			case "$LINEA" in
+				"${PARAM[$N]}="* ) #parametro que sea carácter = y despues lo que sea que tenga el valor
+					VALOR[N]="{LINEA#*=}"
+					ENCONTRADO=1
+					;;
+			esac
+		done
+		if test $ENCONTRADO -eq 0
+		then
+			echo "ERROR: linea no reconocida en $CFG: \"$LINEA\""
+			LINEAS_MAL=1
+		fi
+	done < "$CFG"
+	return $LINEAS_MAL
+}
+
+function validar_config
+{
+	CONFIG_OK=0
+	rango 3 50 100 "un numero entero entre 50 y 100"
+	rango 4 5 10 "un numero entero entre 5 y 10"
+	if test $CONFIG_OK -eq 0
+	then
+		rango 5 (({VALOR[4]}+1)) (({VALOR[3]}-1)) "un numero entero que cumpla PFALLO < PRESPUESTA < PVIDA (${VALOR[4]} < PRESPUESTA < ${VALOR[3]})"
+	else
+		rango 5 1 999999999 "un numero entero que cumpla PFALLO < PRESPUESTA < PVIDA"
+	fi
+	rango 1 2 4 "un numero entero entre 2 y 4"
+	rango 2 1 999999999 "un numero entero positivo"
+	rango 6 1 4 "un numero entero entre 1 y 4"
+	rango 7 0 2 "un numero entero entre 0 y 2"
+	case "${VALOR[8]}" in
+		"" | */ )
+			echo "Error: LOG debe ser la ruta de un fichero (valor leido: \"${VALOR[8]}\")."
+			CONFIG_OK=1
+			;;
+		* )
+			if test -d "${VALOR[8]}"
+			then
+				echo "Error: LOG (${VALOR[8]}) es un directorio, no un fichero."
+				CONFIG_OK=1
+			fi
+			;;
+	esac
+	return $CONFIG_OK
+}
+
+function aplicar_config
+{
+	JUGADORES=${VALOR[1]}
+	RONDAS=${VALOR[2]}
+	PVIDA=${VALOR[3]}
+	PFALLO=${VALOR[4]}
+	PRESPUESTA=${VALOR[5]}
+	CATEGORIAS=${VALOR[6]}
+	ESTRATEGIA=${VALOR[7]}
+	LOG="${VALOR[8]}"
+}
+
+function escribir_config
+{
+	for N in 1 2 3 4 5 6 7 8
+	do
+		echo "${PARAM[$N]}=${VALOR[$N]}"
+	done
+}
+
+function cambiar_parametro
+{
+	NUMERO=$1
+	ANTERIOR="${VALOR[$NUMERO]}"
+	echo -n " Nuevo valor para ${PARAM[$NUMERO]} (actual: $ANTERIOR) >> "
+	leer
+	VALOR[NUMERO]="ENTRADA"
+	if validar_config
+	then
+		escribir_config > "$CFG"
+		aplicar_config
+		echo " ${PARAM[$NUMERO]} se ha cambiado a ${VALOR[$NUMERO]} y se ha guardado en $CFG."
+	else
+		VALOR[NUMERO]="ANTERIOR"
+		echo " No se ha modificado ${PARAM[$NUMERO]}: sigue valiendo $ANTERIOR."
+	fi
+}
+
+function opcion_configuracion
+{
+	SALIR_C=0
+	while test $SALIR_C -eq 0
+	do
+		echo "==========================================================="
+		echo "                      CONFIGURACIÓN"
+		echo "==========================================================="
+		for N in 1 2 3 4 5 6 7 8
+		do
+			echo " $N) ${PARAM[$N]} = ${VALOR[$N]}   (${AYUDA[$N]})"
+		done
+		echo " 0) Volver al menú principal"
+		echo -n " Elija el parámetro que desea modificar >> "
+		leer
+		case "$ENTRADA" in
+			1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 )
+				cambiar_parametro $ENTRADA
+				;;
+			0 )
+				SALIR_C=1
+				;;
+			* )
+				echo " Opción no válida."
+				;;
+		esac
+	done
+}
+
+
+
+
+
+function frase_incorrecta
+{
+	case "$1" in
+		"" | " "* | *" " | *"  "* | *[!ABCDEFGHIJKLMNOPQRSTUVWXYZ\ ]* )
+			return 0
+			;;
+	esac
+	return 1
+}
+
+function cargar_frases
+{
+	declare -A VISTA #sirve para recordar que frases ya han salido
+	unset FCAT FNIV FTXT
+	NFRASES=0
+	NINVALIDAS=0
+	NREPETIDAS=0
+	while leer_linea
+	do
+		if test -n "$LINEA"
+		then
+			analizar_frase
+		fi
+	done < "$FRASES"
+}
+
+
+function analizar_frase
+{
+	NIVEL=0
+	CATEG="${LINEA%%:*}" #borra todo despues de los : para quedarse solo con la categoria
+	TEXTO="${LINEA#*:}" #se queda con todo despues de los : para quedarse con la frase
+	for N in 1 2 3 4
+	do
+		if test "CATEG"="{CATS[$N]}"
+		then
+			NIVEL=$N
+		fi
+	done
+	if test "CATEG"="LINEA"
+	then
+		NIVEL=0
+	elif frase_incorrecta "$TEXTO"
+	then
+		NIVEL=0
+	fi
+	if test $NIVEL -eq 0
+	then
+		NINVALIDAS=((NINVALIDAS+1))
+	elif test -n "${VISTA[$TEXTO]}"
+	then
+		NREPETIDAS=((NREPETIDAS+1))
+	else
+		VISTA[$TEXTO]=1
+		NFRASES=((NFRASES+1))
+		FCAT[NFRASES]="CATEG"
+		FNIV[NFRASES]=NIVEL
+		FTXT[NFRASES]="TEXTO"
+	fi
+}
+
+
+function consultar_frases
+{
+	cargar_frases
+	for N in 1 2 3 4
+	do
+		ESTADO_CAT="habilitada"
+		if test $N -gt $CATEGORIAS
+		then
+			ESTADO_CAT="no habilitada"
+		fi
+		echo " --- ${CATS[$N]} (ESTADOCATconCATEGORIAS=CATEGORIAS) ---"
+		CUENTA=0
+		for POS in ${!FTXT[*]}
+		do
+			if test ${FNIV[$POS]} -eq $N
+			then
+				CUENTA=((CUENTA+1))
+				echo "   $CUENTA. ${FTXT[$POS]}"
+			fi
+		done
+		if test $CUENTA -eq 0
+		then
+			echo "   (no hay frases de esta categoría)"
+		fi
+	done
+	echo " Total: $NFRASES frases válidas."
+	if test $NINVALIDAS -gt 0
+	then
+		echo " Aviso: se han ignorado $NINVALIDAS líneas con formato incorrecto."
+	fi
+	if test $NREPETIDAS -gt 0
+	then
+		echo " Aviso: se han ignorado $NREPETIDAS frases repetidas."
+	fi
+}
+
+
+function asegurar_salto
+{
+	if test -s "$1"
+	then
+		ULTIMO=`tail -c 1 "$1"`
+		if test -n "$ULTIMO"
+		then
+			echo 2> /dev/null >> "$1"
+		fi
+	fi
+}
+
+
+function anadir_frase
+{
+	echo " Categorías:"
+	for N in 1 2 3 4
+	do
+		echo "   $N) ${CATS[$N]}"
+	done
+	NIVEL=""
+	while test -z "$NIVEL"
+	do
+		echo -n " Elija la categoría (1-4) >> "
+		leer
+		case "$ENTRADA" in
+			1 | 2 | 3 | 4 )
+				NIVEL=$ENTRADA
+				;;
+			* )
+				echo " Categoría no válida."
+				;;
+		esac
+	done
+	echo -n " Introduzca la frase >> "
+	leer
+	mayusculas "$ENTRADA"
+	if frase_incorrecta "$MAYUS"
+	then
+		echo " Error: frase no válida. Solo puede contener letras de la A a la Z"
+		echo " (sin acentos, sin Ñ ni caracteres especiales) separadas por un único espacio."
+	elif grep ":$MAYUS\$" "$FRASES" > /dev/null
+	then
+		echo " Error: la frase \"$MAYUS\" ya existe en $FRASES."
+	else
+		asegurar_salto "$FRASES"
+		if echo "${CATS[$NIVEL]}:MAYUS"2>/dev/null>>"FRASES"
+		then
+			echo " Frase añadida: ${CATS[$NIVEL]}:$MAYUS"
+		else
+			echo " Error: no se ha podido escribir en $FRASES."
+		fi
+	fi
+}
+
+
+
+function opcion_frases
+{
+	SALIR_F=0
+	while test $SALIR_F -eq 0
+	do
+		echo "==========================================================="
+		echo "                          FRASES"
+		echo "==========================================================="
+		echo " 1) Consultar las frases"
+		echo " 2) Añadir una frase"
+		echo " 0) Volver al menú principal"
+		echo -n " Introduzca una opción >> "
+		leer
+		case "$ENTRADA" in
+			1 )
+				consultar_frases
+				;;
+			2 )
+				anadir_frase
+				;;
+			0 )
+				SALIR_F=1
+				;;
+			* )
+				echo " Opcion no valida."
+				;;
+		esac
+	done
+}
+
+
+
+
+
+
+—--------------------------------------------------------------------
+function crear_jugadores()
+{
+    eval "declare -g -a PERSONA=()";
+    local ARCHIVO="config.cfg"  
+   
+
+
+    local LINEA_JUGADORES=$(grep "^JUGADORES" "$ARCHIVO")
+    local NUM_JUGADORES=${LINEA_JUGADORES#*=}
+#Borra todo lo q esta a la izq de los : (“JUGADORES:4”) y me quedo con el 4
+    for (( i=1; i<=NUM_JUGADORES-1; i++ )); do
+     
+    eval "declare -g -a IA_$i=()";
+    done
+}
+
+
+
+function rellenar_dato()
+{
+    local ARCHIVO="config.cfg"  
+    local LINEA_PTOS=$(grep "^PVIDA" "$ARCHIVO" )
+    local PTVIDA=${LINEA_PTOS#*=}
+    local LINEA_JUGADORES=$(grep "^JUGADORES" "$ARCHIVO")
+        local NUM_JUGADORES=${LINEA_JUGADORES#*=}
+   
+    local RONDAS=0
+PERSONA+=("$PTVIDA")
+PERSONA+=("$RONDAS")
+
+
+for ((i=1; i<=NUM_JUGADORES-1; i++)); do
+eval "IA_${i}[0]=\"$PTVIDA\""
+eval "IA_${i}[1]=\"$RONDAS\""
+done
+
+
+}
+
+
+function llamar_frase()
+{
+    eval "declare -g -a FRASEV=()";
+    eval "declare -g -a FRAS_DESCOMPUESTA=()"
+    eval "declare -g -a CATEGORIASV=()"
+    local ARCHIVO="config.cfg"
+    local LINEA_CAT=$(grep "^CATEGORIA" "$ARCHIVO" )
+    local CAT_NUM=${LINEA_CAT#*=}""
+    CATEGORIASV=()
+    case "$CAT_NUM" in
+
+
+            1)
+                CATEGORIASV+=("REFRAN")
+               
+                ;;
+            2)  CATEGORIASV+=("REFRAN")
+                CATEGORIASV+=("PELICULA")
+               
+                ;;
+            3)  CATEGORIASV+=("REFRAN")
+                CATEGORIASV+=("PELICULA")
+                CATEGORIASV+=("MUSICA")
+               
+                ;;
+            4)  CATEGORIASV+=("REFRAN")
+                CATEGORIASV+=("PELICULA")
+                CATEGORIASV+=("MUSICA")
+                CATEGORIASV+=("DEPORTE")
+               
+                ;;
+
+
+    esac
+    while true; do
+        local CAT_CORRECT=0
+        local FRASE_ALET=$(shuf -n 1 frases.dat)
+        local CATEGORIA="${FRASE_ALET%:*}"
+        local FRASE="${FRASE_ALET#*:}"
+
+
+        for ((i=0;i<${#CATEGORIASV[@]};i++)); do
+            if [[ ${CATEGORIASV[i]} == "$CATEGORIA" ]]; then
+                CAT_CORRECT=1
+                break
+            fi
+        done
+
+
+        if [[ $CAT_CORRECT -eq 1 ]]; then
+            CAT_CORRECT=0
+            break
+        fi
+    done
+    FRASEV+=("$CATEGORIA")
+    FRASEV+=("$FRASE")
+
+
+local LONGITUD=${#FRASE}
+FRASEV+=("$LONGITUD")
+
+
+for(( i=0;i<LONGITUD;i++ )); do
+
+
+local LETRA="${FRASE:i:1}"
+FRAS_DESCOMPUESTA+=("$LETRA")
+done
+
+
+}
+
+function frase_oculta()
+{
+    eval "declare -g -a FRASEOCULTA=()";
+local LONGITUD="${FRASEV[2]}"
+
+
+for(( i=0;i<LONGITUD;i++)); do
+    if [[  " "  == "${FRAS_DESCOMPUESTA[i]}" ]]; then
+        FRASEOCULTA+=(" ")
+
+
+else
+    FRASEOCULTA+=("_")
+fi
+
+
+done    
+}
+
+
+function ImprimirFraseOculta()
+{
+    echo "${FRASEOCULTA[*]}"
+}
+function IA_random() {
+        declare -g POSICION_LETRA
+    
+    local ARCHIVO="config.cfg"
+    local LINEA_ESTR=(grep"ESTRATEGIA""ARCHIVO")
+    local NUM_ESTR=${LINEA_ESTR#*=}
+    local LETRA
+    case "$NUM_ESTR" in
+        0)
+            
+            POSICION_LETRA=$((POSICION_LETRA + 1))
+            LETRA=$POSICION_LETRA
+            ;;
+        1)
+            
+            LETRA=$((RANDOM % 27))
+            ;;
+        2)
+
+
+            LETRA=$((RANDOM % 27))
+            ;;
+        *)
+
+
+            LETRA=0
+            ;;
+    esac
+
+
+    return $LETRA
+}
+
+function ImpimirVectorLetras()
+{
+    echo "${LETRAS_ESCRITAS[*]}"
+}
+
+
+
+—------------------------------------------------------------------------------------
+
+function opcion_jugar  {
+	  
+           echo "Opción JUGAR"
+           crear_jugadores
+           echo "Jugadores IA creados"
+           rellenar_dato
+           echo "Puntos de vida inicializados y puntos por ronda a 0"
+           echo "Empezar a jugar"
+           echo "-----------------------------------------"
+           
+           local ARCHIVO="config.cfg"
+           local LINEA_JUGADORES=$(grep "^JUGADORES" "$ARCHIVO")
+           local NUM_JUGADORES=${LINEA_JUGADORES#*=}
+           local LINEA_PFALLO=$(grep "^PFALLO" "$ARCHIVO")
+           local PFALLOS=${LINEA_PFALLO#*=}
+		   local LINEA_RESP=$(grep "^PRESPUESTA" "$ARCHIVO")
+           local PRESPUESTA=${LINEA_RESP#*=}
+           local LINEA_RONDAS=$(grep "^RONDAS" "$ARCHIVO")
+           local NUM_RONDAS=${LINEA_RONDAS#*=}
+           local LINEA_VIDAS=$(grep "^PVIDA" "$ARCHIVO")
+           local VIDAS_JUGADORES=${LINEA_VIDAS#*=}
+           local OPCION_JUEGO
+           local JUGADOR
+           local ACERTADO=0
+           
+           local RONDA=1
+            eval "declare -g -a LETRAS_ESCRITAS=()";
+           
+
+
+           for ((k=0;k<NUM_RONDAS;k++)); do
+                LETRAS_ESCRITAS=()
+               CONTADOR=0
+               ACERTADO=0
+               RONDA=$((k+1))
+               # Reset de vidas
+               PERSONA[0]="$VIDAS_JUGADORES"
+               for ((i=1; i<NUM_JUGADORES; i++)); do
+                    eval "IA_${i}[0]=\"$VIDAS_JUGADORES\""
+                done
+               llamar_frase
+               echo "Frase escogida para nueva ronda"
+               frase_oculta
+               echo "Mostrando frase oculta:"
+               echo "========================================================"
+               ImprimirFraseOculta
+               echo "========================================================"
+               
+               local CATEGORIA="${FRASEV[0]}"
+               while true; do
+                       echo "============================"
+                       echo "Ronda numero $RONDA / $NUM_RONDAS"
+                       echo "============================"
+                       echo "CATEGORIA: $CATEGORIA "
+                       echo "============================"
+                 
+                       
+                       echo "Letras usadas Actualmente"
+                       ImpimirVectorLetras
+                       echo "============================"
+                       local VIDAJUGADOR
+                       echo "Vidas:"
+                       VIDAJUGADOR=${PERSONA[0]}
+                       echo "Jugador 1 vidas: $VIDAJUGADOR"
+
+
+
+
+                       for ((i=1; i<NUM_JUGADORES; i++)); do
+                           eval "VIDAJUGADOR=\${IA_${i}[0]}"
+                           echo "IA_$i vidas: $VIDAJUGADOR"
+                       done
+                        echo "Mostrando frase oculta:"
+                        echo "========================================================"
+                        ImprimirFraseOculta
+                        echo "========================================================"
+
+
+                       
+                         
+                           while true; do
+                               JUGADOR=1
+                               OPCION_JUEGO=0;
+                               if  [[ ${PERSONA[0]} -le 0 ]]; then
+                                    echo "No te quedan mas vidas eliminado del juego"
+                               break
+                               fi
+                               echo "Mostrando frase actual"
+                               ImprimirFraseOculta
+                               echo "Jugador $JUGADOR es su turno"
+                               echo "Seleccione una opcion"
+                               echo "1)Introducir letra"
+                               echo "2)Resolver frase"
+                               echo " opcion: "
+                               read OPCION_JUEGO
+                               case "$OPCION_JUEGO" in
+                               1)
+                                   eval "declare -a POS=()";
+                                   local REP=0
+                                   local ENCONTRADA=0
+                                   local LETRA
+                                   local LONG_POS
+                                   local LONG_LETRASV=${#LETRAS_ESCRITAS[@]}
+
+
+
+
+                                   while  true; do
+										local ENCONTRADA=0
+										echo "Introduce la letra"
+										read LETRA
+
+
+
+
+										mayusculas "$LETRA"
+										LETRA="$MAYUS"
+
+
+
+
+                                       if [[ "$LETRA" =~ [A-Z] ]]; then
+                                           
+                                         
+                                           for ((p=0;p<LONG_LETRASV;p++ ));do
+                                             
+                                               if [[ "$LETRA" == ${LETRAS_ESCRITAS[p]} ]]; then
+                                                   ENCONTRADA=1
+                                                 
+                                               fi
+                                           done
+                                         
+                                           if [[ $ENCONTRADA -eq 0 ]]; then
+                                               break
+                                           fi
+                                           if [[ $ENCONTRADA -eq 1 ]]; then
+                                                   echo "Letra repetida, introduce otra"
+                           
+                                                 
+                                           fi
+                                     
+                                       else
+                                           echo "Error no has introducido una letra"
+                                       fi
+                                   done
+                                    LETRAS_ESCRITAS+=("$LETRA")
+
+
+                                 
+                                   for((j=0;j<FRASEV[2];j++)); do
+
+                                       if [[ "$LETRA" == ${FRAS_DESCOMPUESTA[j]} ]]; then
+                                           POS+=("$j")
+                                           REP=$((REP +1))
+                                       fi
+                                   done
+                                   if [[ $REP -eq 0 ]]; then
+                                       echo " Letra no valida, salto de turno "
+                                       PERSONA[0]=$((PERSONA[0] - $PFALLOS))
+                                       break
+                                   fi
+                                   LONG_POS=${#POS[@]}
+
+                                   for ((x=0;x<LONG_POS;x++)); do
+                                        FRASEOCULTA[POS[x]]="$LETRA"
+                                     
+                                   done
+                                   POS=()
+                                   REP=0
+                                   local FALTAN=0
+                                   for ((x=0;x<FRASEV[2];x++)); do
+                                       if [[ "${FRASEOCULTA[x]}" == "_" ]]; then
+                                           FALTAN=1
+                                           break  
+                                       fi
+                                   done
+                                   if [[ $FALTAN -eq 0 ]]; then
+                                       echo "Has completado la frase!!"
+                                       PERSONA[1]=$(( PERSONA[1] + 1 ))
+                                       ACERTADO=1
+                                       break      
+                                   fi
+                                   ;;
+                               2)
+                                   
+                                   local FRASE_DESCUBRIR
+                                   while true; do
+                                       echo -n "Introduce la frase: "
+                                       read FRASE_DESCUBRIR
+                                 
+                                       mayusculas "$FRASE_DESCUBRIR"
+                                       FRASE_DESCUBRIR="$MAYUS"
+                                       local LONGI=${#FRASE_DESCUBRIR}
+                                       if [[ "$FRASE_DESCUBRIR" =~ ^[A-ZÑ\ ]+$ ]] && [[ $LONGI -eq ${FRASEV[2]} ]]; then
+                                             break
+                                       else
+                                           echo "Error al introducir la frase"
+                                       fi
+                                   done
+                                         
+
+
+
+
+
+
+
+
+                                       if [[ "$FRASE_DESCUBRIR" ==  "${FRASEV[1]}"  ]]; then
+                                               echo "FRASE CORRECTA!!"
+                                               PERSONA[1]=$(( PERSONA[1] + 1 ))
+                                               ACERTADO=1
+                                               
+                                        else
+                                               echo "ERROR:FRASE INCORRECTA"
+                                               PERSONA[0]=$((PERSONA[0] - $PRESPUESTA))
+                                               echo "Siguiente jugador"
+                                               
+                                           fi
+                                    break
+                                   ;;
+                               3)
+                                   break
+                                   ;;
+                                *)
+                                    echo "Opcion no valida"
+                                    ;;
+                               esac
+                           done
+                       
+                       if [[ $ACERTADO -eq 1 ]]; then
+                           break
+                       fi
+                       
+    for ((i=1; i<NUM_JUG; i++)); do
+    
+    
+		while true; do
+			JUGADOR=$i
+			local VIDA_ACTUAL
+			eval "VIDA_ACTUAL=\${IA_${i}[0]}"
+			
+			if [[ "$VIDA_ACTUAL" -le 0 ]]; then
+				echo "IA_$i esta eliminada"
+				break
+			fi
+
+
+			# Leer la estrategia actual desde el archivo de configuración
+			local ARCHIVO="config.cfg"
+			local LINEA_ESTR=(grep"ESTRATEGIA""ARCHIVO")
+			local NUM_ESTR=${LINEA_ESTR#*=}
+			NUM_ESTR=(echo"NUM_ESTR" | tr -d '[:space:]')
+
+
+			local COUNT_INCG=0
+			for ((x=0; x<${FRASEV[2]}; x++)); do
+				if [[ "${FRASEOCULTA[x]}" == "_" ]]; then
+					COUNT_INCG=$((COUNT_INCG + 1))
+				fi
+			done
+
+
+			echo "Mostrando frase actual"
+			ImprimirFraseOculta
+			echo "IA_$JUGADOR es su turno (Estrategia: $NUM_ESTR)"
+
+
+			# Definir la opción de juego según la estrategia
+			case "$NUM_ESTR" in
+				0 | 1)
+					
+					if [[ $COUNT_INCG -le 1 ]]; then
+						OPCION_JUEGO=2  
+					else
+						OPCION_JUEGO=1  
+					fi
+					;;
+				2)
+					
+					if [[ $COUNT_INCG -le 3 ]]; then
+						OPCION_JUEGO=2
+					else
+						OPCION_JUEGO=1
+					fi
+					;;
+				*)
+					OPCION_JUEGO=1
+					;;
+			esac
+
+
+			# Procesar la opción elegida (1: Letra, 2: Resolver)
+			case "$OPCION_JUEGO" in
+				1)
+					echo "Introduciendo letra ...."
+					eval "declare -a POS=()"
+					local LETRA_RANDM
+					local REP=0
+					local ENCONTRADA=0
+					local LETRA_ABC
+					local LONG_POS
+					local LONG_LETRASV=${#LETRAS_ESCRITAS[@]}
+				
+					while true; do
+						ENCONTRADA=0
+						LETRA_RANDM=$(IA_random)
+						LETRA_ABC=${ABECEDARIO[LETRA_RANDM]}
+						
+						for ((p=0; p<LONG_LETRASV; p++)); do
+							if [[ "LETRA_ABC" == "${LETRAS_ESCRITAS[p]}" ]]; then
+								ENCONTRADA=1
+							fi
+						done
+						
+						if [[ $ENCONTRADA -eq 0 ]]; then
+							break
+						fi
+					done
+
+
+					echo "La letra elegida es: $LETRA_ABC"
+					LETRAS_ESCRITAS+=("$LETRA_ABC")
+
+
+					for ((j=0; j<${FRASEV[2]}; j++)); do
+						if [[ "LETRA_ABC" == "${FRAS_DESCOMPUESTA[j]}" ]]; then
+							POS+=("$j")
+							REP=$((REP + 1))
+						fi
+					done
+
+
+					if [[ $REP -eq 0 ]]; then
+						echo "Letra no válida, salto de turno"
+						eval "IA_${i}[0]=\$(( IA_${i}[0] - $PFALLOS ))"
+						POS=()
+						break          
+					fi
+
+
+					LONG_POS=${#POS[@]}
+					for ((x=0; x<LONG_POS; x++)); do
+						FRASEOCULTA[POS[x]]="$LETRA_ABC"
+					done
+
+
+					POS=()
+					REP=0
+					local FALTAN=0
+
+
+					for ((x=0; x<${FRASEV[2]}; x++)); do
+						if [[ "${FRASEOCULTA[x]}" == "_" ]]; then
+							FALTAN=1
+							break
+						fi
+					done
+
+
+					if [[ $FALTAN -eq 0 ]]; then
+						echo "IA_$i ha completado la frase!!"
+						eval "IA_${i}[1]=\$(( IA_${i}[1] + 1 ))"
+						ACERTADO=1
+						break
+					fi
+					;;
+				2)
+					echo "Adivinando frase..."
+					local PORCTJ_FALLO=$((RANDOM % 10))
+					local LVL_RESTRICCION=2
+					local FRASE_ADV
+
+
+					if [[ $PORCTJ_FALLO -le $LVL_RESTRICCION ]]; then
+						echo "Frase incorrecta, siguiente jugador"
+						eval "IA_${i}[0]=\$(( IA_${i}[0] - $PRESPUESTA ))"
+						break
+					else  
+						FRASE_ADV=${FRASEV[1]}
+						echo "La frase es $FRASE_ADV"
+						echo "¡Correcto!"
+						eval "IA_${i}[1]=\$(( IA_${i}[1] + 1 ))"
+						ACERTADO=1
+						break
+					fi
+					;;
+			esac
+		done
+	done                               
+                    
+                   #Concidines de salida de cada ronda o gana o ninguno gana
+                   local CONTADOR_VIDAS_IA=0
+                   for ((c=1;c<NUM_JUGADORES;c++)); do
+                           local VIDA_IA
+                           eval "VIDA_IA=\${IA_${c}[0]}"
+                           if [[ "$VIDA_IA" -le 0 ]]; then
+                               CONTADOR_VIDAS_IA=$((CONTADOR_VIDAS_IA + 1))
+                           fi
+                   done
+                   if [[ $ACERTADO -eq 1 ]]; then
+                           ACERTADO=0
+                           LETRAS_ESCRITAS=()
+                           RONDA=$((RONDA +1))
+                           break
+                   fi
+                   local VIDA_PERSONA="${PERSONA[0]}"
+                    if [[ $VIDA_PERSONA -le 0 && $CONTADOR_VIDAS_IA -eq $((NUM_JUGADORES-1)) ]]; then
+                           echo " Nadie gana puntos  en esta ronda"
+                           ACERTADO=0
+                           RONDA=$((RONDA +1))
+                           LETRAS_ESCRITAS=()
+                           break
+                   fi
+               done
+           done
+   echo "----- RESULTADOS -----"
+       local GANADOR="Jugador 1"
+       local MAX_PUNTOS=${PERSONA[1]}
+       local VIDAS_GANADOR=${PERSONA[0]}
+       local PUNTOS_IA
+       local VIDAS_FINAL_IA
+
+
+
+
+     
+       for ((i=1; i<NUM_JUGADORES; i++)); do
+           eval "PUNTOS_IA=\${IA_${i}[1]}"
+           eval "VIDAS_FINAL_IA=\${IA_${i}[0]}"
+         
+           if [[ $PUNTOS_IA -gt $MAX_PUNTOS ]]; then
+               MAX_PUNTOS=$PUNTOS_IA
+               VIDAS_GANADOR=$VIDAS_FINAL_IA
+               GANADOR="IA $i"
+         
+         
+           elif [[ $PUNTOS_IA -eq $MAX_PUNTOS ]]; then
+               if [[ $VIDAS_FINAL_IA -gt $VIDAS_GANADOR ]]; then
+                   MAX_PUNTOS=$PUNTOS_IA
+                   VIDAS_GANADOR=$VIDAS_FINAL_IA
+                   GANADOR="IA $i"
+             
+               fi
+           fi
+       done
+
+
+
+
+     
+       echo "============================"
+       echo "El ganador es $GANADOR con $MAX_PUNTOS puntos"
+
+
+}
+
+
+function dividir
+{
+	CENT=(((1 * 100 + $2 / 2) / $2 ))
+	FRAC=((CENT % 100))
+	if test $FRAC -lt 10
+	then
+		FRAC="0$FRAC"
+	fi
+	DEC="((CENT / 100)),$FRAC"
+}
+
+function columna
+{
+	grep "|" "$LOG" | grep -v "^FECHA" | cut -d "|" -f $1
+}
+
+function sumar
+{
+	SUMA=0
+	for V in `columna $1`
+	do
+		SUMA=((SUMA+$V))
+	done
+}
+
+function mas_usados
+{
+	MAXIMO=0
+	for V in $2
+	do
+		VECES[$V]=`columna $1 | grep "^$V\$" | wc -l`
+		if test ${VECES[$V]} -gt $MAXIMO
+		then
+			MAXIMO=${VECES[$V]}
+		fi
+	done
+	for V in $2
+	do
+		if test ${VECES[$V]} -eq $MAXIMO
+		then
+			echo "   3=V ($MAXIMO partidas)"
+		fi
+	done
+}
+
+function opcion_estadisticas
+{
+	echo "==========================================================="
+	echo "                       ESTADÍSTICAS"
+	echo "==========================================================="
+	if test ! -f "$LOG"
+	then
+		echo " No hay partidas registradas: no existe el fichero $LOG."
+		return
+	fi
+	NPART=`columna 1 | wc -l`
+	if test $NPART -eq 0
+	then
+		echo " No hay partidas registradas en $LOG."
+		return
+	fi
+	echo " Partidas jugadas: $NPART"
+	sumar 3
+	dividir $SUMA $NPART
+	echo " Tiempo medio: $DEC segundos"
+	MIN_TPO=-1
+	MAX_TPO=-1
+	for L in `columna 1-3`
+	do
+		T="${L##*|}"
+		if test $MIN_TPO -lt 0 -o $T -lt $MIN_TPO
+		then
+			MIN_TPO=$T
+			MIN_L="$L"
+		fi
+		if test $T -gt $MAX_TPO
+		then
+			MAX_TPO=$T
+			MAX_L="$L"
+		fi
+	done
+	MIN_L="${MIN_L%|*}"
+	MAX_L="${MAX_L%|*}"
+	echo " Partida más corta: ${MIN_L/|/ a las }, $MIN_TPO segundos"
+	echo " Partida más larga: ${MAX_L/|/ a las }, $MAX_TPO segundos"
+	echo " Rendimiento por jugador:"
+	for J in 1 2 3 4
+	do
+		JUGADAS=`columna ((J+11)) | grep -v "^-\$" | wc -l`
+		VICTORIAS=`columna 11 | grep "^$J\$" | wc -l`
+		if test $JUGADAS -eq 0
+		then
+			echo "   Jugador $J: no ha participado en ninguna partida"
+		else
+			dividir ((VICTORIAS*100)) $JUGADAS
+			echo "   Jugador $J: $VICTORIAS partidas ganadas de JUGADASjugadas(DEC %)"
+		fi
+	done
+	sumar 5
+	TOTAL_RONDAS=$SUMA
+	dividir $TOTAL_RONDAS $NPART
+	echo " Promedio de rondas por partida: $DEC"
+	echo " Estrategia de IA más utilizada:"
+	mas_usados 10 "0 1 2" ESTRATEGIA
+	echo " Nivel de categorías más utilizado:"
+	mas_usados 9 "1 2 3 4" CATEGORIAS
+	sumar 16
+	dividir $SUMA $NPART
+	echo " Promedio de letras utilizadas por partida: $DEC"
+	sumar 17
+	DESIERTAS=((TOTAL_RONDAS-$SUMA))
+	dividir ((DESIERTAS*100)) $TOTAL_RONDAS
+	echo " Estadística libre - rondas desiertas: $DESIERTAS de TOTALRONDASrondasjugadas(DEC %)"
+}
+
+function menu_principal {
+	while true;
 	do
    	    echo "=================="
    		echo "JUEGO “EL ENIGMA”"
@@ -183,19 +1300,19 @@ function menu_principal{
     	case "$OPCION" in
         	c | C )
             		echo "Opción CONFIGURACON"
-
+            		opcion_configuracion
             	;;
         	j | J )
             		echo "Opción JUGAR"
-
+            		opcion_jugar
             	;;
         	f | F )
             		echo "Opción FRASES"
-
+            		opcion_frases
             	;;
         	e | E )
             		echo "Opción ESTADISTICA"
-
+            		opcion_estadisticas
             	;;
         	s | S )
 
@@ -205,6 +1322,20 @@ function menu_principal{
             		echo "Opción válida"
             	;;
     	esac
+    	pausa
 	done
 }
+
+function modo_normal
+{
+	inicializar_datos
+	comprobar_ficheros
+	validar_ficheros
+	menu_principal
+}
+
+comprobar_argumentos #"1"
+modo_normal
+
+
 
