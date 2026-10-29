@@ -15,6 +15,8 @@ then
 		echo "Uso: enigma.sh [-g]"
 		exit 1
 	fi
+	modo_informacion
+	exit 0
 fi
 }
 
@@ -957,8 +959,9 @@ function opcion_jugar  {
                        fi
                        
     for ((i=1; i<NUM_JUGADORES; i++)); do
-    
-    
+    if [[ $ACERTADO -eq 1 ]]; then  
+    break
+	fi
 		while true; do
 			JUGADOR=$i
 			local VIDA_ACTUAL
@@ -971,7 +974,6 @@ function opcion_jugar  {
 
 
 			local NUM_ESTR=$ESTRATEGIA
-			NUM_ESTR=(echo"NUM_ESTR" | tr -d '[:space:]')
 
 
 			local COUNT_INCG=0
