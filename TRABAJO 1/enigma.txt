@@ -8,21 +8,21 @@ function modo_informacion
 	echo "| Número de integrantes (2)                            |"
 	echo "| Integrante 1: Héctor Vicente González                |"
 	echo "| Integrante 2: Andrés Romo Gómez                      |"
+	echo "|======================================================						  |"
+	echo "| ESTRATEGIA 2 (IA propia en letras al azar)						  |"
+	echo "| El modelo en el que se basa la IA del ejercicios consiste  en emplear 		  |"
+	echo "| la variable RANDOM para  q nos de un valor comprendido entre 0-25 y ese       |"
+	echo "| valor sera la posicion de la letra en un vector abecedario definido, ademas   |"
+	echo "| se controlar si la letra esta repetida en ese caso se volvera a generar       |"
+	echo "| otro numero para seleccionar otra letra, ademas se ve incorpora en            |"
+	echo "| en la zona de la frase un % de fallo basado tambien en RANDOM (de 0-9)		  |" 
+	echo "| y dependiendo del numero que se puede modificar  la probabilidad de fallo	  |"
+	echo "| es menor o mayor, por ultimo cabe aclarar que a IA no resolveran la frase	  |"
+	echo "|al menos q el numero de letras faltantes sea uno dado en este caso es 3		  |"
+	echo "| aunque se puede modificar para mas dificultad tanto el % de fallo y el 		  |"
+	echo "|el numero de letras ocultas que haya              							  |"
 	echo "|======================================================|"
-	echo "| ESTRATEGIA 2 (IA propia en frecuencia al castellano)|"
-	echo "| El modelo en el que se basa la IA del ejercicios consiste  en emplear |"
-	echo "| la variable RANDOM para  q nos de un valor comprendido entre 0-26 y ese |"
-	echo "| valor sera la posicion de la letra en un vector abecedario definido, ademas |"
-echo "| se controlar si la letra esta repetida en ese caso se volvera a generar |"
-echo "| otro numero para seleccionar otra letra, ademas se ve incorpora en |"
-echo "| en la zona de la frase un % de fallo basado tambien en RANDOM (de 0-10)|" 
-echo "| y dependiendo del numero que se puede modificar  la probabilidad de fallo|"
-echo "| es menor o mayor, por ultimo cabe aclarar que a IA no resolveran la frase|"
-echo "|al menos q el numero de letras faltantes sea uno dado en este caso es 5||"
-echo "| aunque se puede modificar para mas dificultad tanto el % de fallo y el |"
-echo "|el numero de letras ocultas que haya                |"
-	echo "|======================================================|"
-	echo "| ESTADISTICA LIBRE: porcentraje de rondas desiertas.  |"
+	echo "| ESTADISTICA LIBRE: porcentaje de rondas desiertas.  |"
 	echo "| Suma las rondas de todas las partidas del LOG y      |"
 	echo "| calcula que parte quedo sin resolver por nadie:      |"
 	echo "| Formula: (RONDAS - FRASES_RESUELTAS) * 100 / RONDAS  |"
@@ -227,19 +227,19 @@ function rango
 
 function cargar_config
 {
-	unset VALOR # Borra el vector VALOR para empezar desde 0
+	unset VALOR 
 	LINEAS_MAL=0
 	while leer_linea
 	do
 		ENCONTRADO=0
-		if test -z "$LINEA" #al usar -z, si la cadena esta vacia es verdadero, sino falso
+		if test -z "$LINEA" 
 		then
 			ENCONTRADO=1
 		fi
 		for N in 1 2 3 4 5 6 7 8
 		do
 			case "$LINEA" in
-				"${PARAM[$N]}="* ) #parametro que sea carácter = y despues lo que sea que tenga el valor
+				"${PARAM[$N]}="* ) 
 					VALOR[$N]="${LINEA#*=}"
 					ENCONTRADO=1
 					;;
@@ -368,7 +368,7 @@ function frase_incorrecta
 
 function cargar_frases
 {
-	declare -A VISTA #sirve para recordar que frases ya han salido
+	declare -A VISTA 
 	unset FCAT FNIV FTXT
 	NFRASES=0
 	NINVALIDAS=0
@@ -386,8 +386,8 @@ function cargar_frases
 function analizar_frase
 {
 	NIVEL=0
-	CATEG="${LINEA%%:*}" #borra todo despues de los : para quedarse solo con la categoria
-	TEXTO="${LINEA#*:}" #se queda con todo despues de los : para quedarse con la frase
+	CATEG="${LINEA%%:*}" 
+	TEXTO="${LINEA#*:}"
 	for N in 1 2 3 4
 	do
 		if test "$CATEG" = "${CATS[$N]}"
@@ -609,11 +609,12 @@ function llamar_frase()
     local LINEA CAT FRASE_C OK
     while IFS= read -r LINEA || [[ -n "$LINEA" ]]; do
         LINEA="${LINEA%$'\r'}"
-        LINEA="${LINEA^^}"
         [[ "$LINEA" == *:* ]] || continue
         CAT="${LINEA%%:*}"
         FRASE_C="${LINEA#*:}"
-        [[ -n "$FRASE_C" ]] || continue
+        if frase_incorrecta "$FRASE_C"; then
+            continue
+        fi
         OK=0
         for ((i=0;i<${#CATEGORIASV[@]};i++)); do
             if [[ "${CATEGORIASV[i]}" == "$CAT" ]]; then
@@ -769,7 +770,18 @@ function opcion_jugar
     local i k m p x j c
     local LINEA_LOG=$(grep "^LOG" "$ARCHIVO")
     local LOG=${LINEA_LOG#*=}
-
+	cargar_frases
+    local DISPONIBLES=0
+    local IDX
+    for IDX in ${!FTXT[*]}; do
+        if [[ ${FNIV[$IDX]} -le $CATEGORIAS ]]; then
+            DISPONIBLES=$((DISPONIBLES + 1))
+        fi
+    done
+    if [[ $DISPONIBLES -lt $RONDAS ]]; then
+        echo "Error: no hay frases suficientes: hay $DISPONIBLES y hacen falta $RONDAS."
+        return 1
+    fi
     mkdir -p "$(dirname "$LOG")" 2>/dev/null || { echo "Error: no se puede crear la carpeta del LOG"; return 1; }
 
     if [[ ! -s "$LOG" ]]; then
@@ -785,7 +797,6 @@ function opcion_jugar
     INICIO=$(date +%s)
     local FIN
     local DURACION
-    echo "Opción JUGAR"
     crear_jugadores
     echo "Jugadores IA creados"
     rellenar_dato
@@ -872,7 +883,7 @@ function opcion_jugar
                     break
                 fi
                 if  [[ ${PERSONA[0]} -le 0 ]]; then
-                    echo "No te quedan mas vidas eliminado del juego"
+                    echo "No te quedan mas vidas eliminado de la ronda"
                     break
                 fi
                 echo "Mostrando frase actual"
@@ -1212,7 +1223,50 @@ function opcion_jugar
     EscribirLog "$NUM_GANADOR" "$NUM_LETRAS_TOTAL" "$FRASES_ACERTADAS" "$DURACION"
 }
 
+function dividir
+{
+	CENT=$(( ($1 * 100 + $2 / 2) / $2 ))
+	FRAC=$(($CENT % 100))
+	if test $FRAC -lt 10
+	then
+		FRAC="0$FRAC"
+	fi
+	DEC="$(($CENT / 100)),$FRAC"
+}
 
+function columna
+{
+	grep "|" "$LOG" | grep -v "^FECHA" | cut -d "|" -f $1
+}
+
+function sumar
+{
+	SUMA=0
+	for V in `columna $1`
+	do
+		SUMA=$(($SUMA+$V))
+	done
+}
+
+function mas_usados
+{
+	MAXIMO=0
+	for V in $2
+	do
+		VECES[$V]=`columna $1 | grep "^$V\$" | wc -l`
+		if test ${VECES[$V]} -gt $MAXIMO
+		then
+			MAXIMO=${VECES[$V]}
+		fi
+	done
+	for V in $2
+	do
+		if test ${VECES[$V]} -eq $MAXIMO
+		then
+			echo "   $3=$V ($MAXIMO partidas)"
+		fi
+	done
+}
 
 function opcion_estadisticas
 {
@@ -1284,58 +1338,56 @@ function opcion_estadisticas
 	echo " Estadística libre - rondas desiertas: $DESIERTAS de $TOTAL_RONDAS rondas jugadas ($DEC %)"
 }
 
-function modo_normal
+
+function menu_principal
 {
+	while true
+	do
+		echo "=================="
+		echo "JUEGO “EL ENIGMA”"
+		echo "=================="
+		echo "C) CONFIGURACIÓN"
+		echo "J) JUGAR"
+		echo "F) FRASES"
+		echo "E) ESTADÍSTICAS"
+		echo "S) SALIR"
+		echo -n "Introduzca una opción >> "
+		read OPCION
+		case "$OPCION" in
+			c | C )
+				echo "Opción CONFIGURACIÓN"
+				opcion_configuracion
+				;;
+			j | J )
+				echo "Opción JUGAR"
+				opcion_jugar
+				;;
+			f | F )
+				echo "Opción FRASES"
+				opcion_frases
+				;;
+			e | E )
+				echo "Opción ESTADISTICA"
+				opcion_estadisticas
+				;;
+			s | S )
+				exit 0
+				;;
+			* )
+				echo "Opción no válida"
+				;;
+		esac
+		pausa
+	done
+}
+
+function main
+{
+	comprobar_argumentos $# "$1"
 	inicializar_datos
 	comprobar_ficheros
 	validar_ficheros
 	menu_principal
 }
 
-comprobar_argumentos $# "$1"
-modo_normal
-
-main() {
-while true;
-	do
-   	    echo "=================="
-   		echo "JUEGO “EL ENIGMA”"
-		echo "=================="
-    	echo "C) CONFIGURACION"
-    	echo "J) JUGAR"
-    	echo "F) FRASES"
-    	echo "E) ESTADISTICAS"
-    	echo "S) SALIR"
-    	echo -n "Introduzca una opcion >> "
-    	read OPCION
-    	case "$OPCION" in
-        	c | C )
-            		echo "Opción CONFIGURACON"
-            		opcion_configuracion
-            	;;
-        	j | J )
-            		echo "Opción JUGAR"
-            		opcion_jugar
-            	;;
-        	f | F )
-            		echo "Opción FRASES"
-            		opcion_frases
-            	;;
-        	e | E )
-            		echo "Opción ESTADISTICA"
-            		opcion_estadisticas
-            	;;
-        	s | S )
-
-            		exit 0
-            	;;
-        	* )
-            		echo "Opción no válida"
-            	;;
-    	esac
-    	pausa
-	done
-}
-
 main "$@"
-
