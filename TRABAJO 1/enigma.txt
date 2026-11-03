@@ -549,10 +549,7 @@ function opcion_frases
 }
 
 
-function mayusculas()
-{
-    MAYUS=$(echo "$1" | tr 'a-z' 'A-Z')
-}
+
 
 function crear_jugadores()
 {
