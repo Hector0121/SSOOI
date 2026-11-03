@@ -1290,8 +1290,19 @@ function opcion_estadisticas
 	echo " Estadística libre - rondas desiertas: $DESIERTAS de $TOTAL_RONDAS rondas jugadas ($DEC %)"
 }
 
-function menu_principal {
-	while true;
+function modo_normal
+{
+	inicializar_datos
+	comprobar_ficheros
+	validar_ficheros
+	menu_principal
+}
+
+comprobar_argumentos $# "$1"
+modo_normal
+
+main() {
+while true;
 	do
    	    echo "=================="
    		echo "JUEGO “EL ENIGMA”"
@@ -1332,16 +1343,5 @@ function menu_principal {
 	done
 }
 
-function modo_normal
-{
-	inicializar_datos
-	comprobar_ficheros
-	validar_ficheros
-	menu_principal
-}
-
-comprobar_argumentos $# "$1"
-modo_normal
-
-
+main "$@"
 
