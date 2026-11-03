@@ -1,26 +1,5 @@
 #!/bin/bash
 
-function comprobar_argumentos {
-if test "$1" -ge 2
-then 
-	echo "Error:Solo puedes pasar un argumento."
-	echo "Uso: enigma.sh [-g]"
-	exit 1
-fi
-if test "$1" -eq 1
-then
-	if test "$2" != "-g"
-	then
-		echo "Error: argumento no valido"
-		echo "Uso: enigma.sh [-g]"
-		exit 1
-	fi
-	modo_informacion
-	exit 0
-fi
-}
-
-#MODO_INFORMACION
 function modo_informacion
 {
 	echo "|------------------------------------------------------|"
@@ -49,10 +28,25 @@ echo "|el numero de letras ocultas que haya                |"
 	echo "| Formula: (RONDAS - FRASES_RESUELTAS) * 100 / RONDAS  |"
 	echo "|======================================================|"
 }
-
-
-#MODO_NORMAL
-
+function comprobar_argumentos {
+if test "$1" -ge 2
+then 
+	echo "Error:Solo puedes pasar un argumento."
+	echo "Uso: enigma.sh [-g]"
+	exit 1
+fi
+if test "$1" -eq 1
+then
+	if test "$2" != "-g"
+	then
+		echo "Error: argumento no valido"
+		echo "Uso: enigma.sh [-g]"
+		exit 1
+	fi
+	modo_informacion
+	exit 0
+fi
+}
 
 function inicializar_datos
 {
