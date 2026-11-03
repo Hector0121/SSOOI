@@ -610,7 +610,7 @@ function llamar_frase()
                 ;;
     esac
 
-    # Se recogen todas las frases validas (categoria elegida y no usadas) y se escoge una al azar
+  
     local -a CANDIDATAS=()
     local LINEA CAT FRASE_C OK
     while IFS= read -r LINEA || [[ -n "$LINEA" ]]; do
