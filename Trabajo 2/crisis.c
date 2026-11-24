@@ -15,8 +15,7 @@ static int soy_matriz;
 static pid_t hijos[MAX_PROCS];
 static int nhijos;
 
-// Creacion del struct para las señales
-struct sigaction sa;
+
 
 static void escribir_pid(char letra)
 {
@@ -158,7 +157,7 @@ int main(int argc, char *argv[]){
     int num_proc_activos=1;
     fd = open ("crisis.dat", O_RDWR | O_CREAT | O_TRUNC, 0600);
         if(fd == -1){
-            fprintf(stderr, "Error en el fichero.\n");
+            write(2, "Error en el fichero.\n", strlen("Error en el fichero.\n");
             return -2;
         }
     
