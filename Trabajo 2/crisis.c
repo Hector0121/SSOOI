@@ -4,6 +4,7 @@
 #include <unistd.h> // write, read, lseek, lockf, getpid, close, unlink
 #include <signal.h> // kill, sigset_t, sigemptyset, sigaddset, sigprocmask, SIGINT, SIGTERM, SIGCHLD
 #include <sys/types.h> // pid_t
+#include <fcntl.h> // para el fichero
 #include <sys/wait.h> // waitpid, WNOHANG
 #define MAX_PROCS 34 // tamaño del array hijos[]
 #define FICHERO "crisis.dat" // lo usa unlink en morir
@@ -135,10 +136,12 @@ int control_arg(int argc, char *argv[]){
     
 }
 
+
 int main(int argc, char *argv[]){
     //argc guarda un numero con los argumentos q le pasamos
-    
+    //--Control de argum---
     int modo=control_arg(argc, argv);
+    
     if(modo <0){
         return -1;
     }
@@ -146,10 +149,20 @@ int main(int argc, char *argv[]){
     int proc_max=atoi(argv[1]);
     // ahora ya tenemos el  mdod del proceso y el numero de proceso max
 
+    //--Fichero---
+    //vamos a  la creacion del fichero y almacenamos el numero de proceso max y  1 q es el numero del proceso del padre
+    int num_proc_activos=1;
+    fd = open ("crisis.dat", O_RDWR | O_CREAT | O_TRUNC, 0600);
+        if(fd == -1){
+            fprintf(stderr, "Error en el fichero.\n");
+            return -2;
+        }
     
+    // Vmos a crear un vector para introducri los datos a la vez en el fichero !! recordar en la lectura necesitaremos un vector para leerlo
+    // ojo el orden,  porc max, y porc activos
+    int datos[2]={proc_max,num_proc_activos};
+    write(fd, datos, sizeof(datos));
     
-    
-    
-
+   
 
 }
