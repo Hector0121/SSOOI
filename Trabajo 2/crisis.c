@@ -16,7 +16,7 @@ static pid_t hijos[MAX_PROCS];
 static int nhijos;
 
 // Creacion del struct para las señales
-
+struct sigaction sa;
 
 static void escribir_pid(char letra)
 {
@@ -153,7 +153,7 @@ int main(int argc, char *argv[]){
     int proc_max=atoi(argv[1]);
     // ahora ya tenemos el  mdod del proceso y el numero de proceso max
 
-    //--Fichero---
+    //--Fichero---(CORECTO)
     //vamos a  la creacion del fichero y almacenamos el numero de proceso max y  1 q es el numero del proceso del padre
     int num_proc_activos=1;
     fd = open ("crisis.dat", O_RDWR | O_CREAT | O_TRUNC, 0600);
@@ -168,10 +168,34 @@ int main(int argc, char *argv[]){
     write(fd, datos, sizeof(datos));
 
     //---Arrancamos la mtriz
-        soy_matrix = 1;
-        nijos=0;
-    //---Crear filial
-    
-   
+        soy_matriz = 1;
+        nhijos=0;
+    //---Crear ficha
+    struct sigaction sa;
+   sa.sa_flags=0;
+   sigemptyset(&sa.sa_mask);
+   //Añadimos señales a la lista de mascara 
+   sigaddset(&sa.sa_mask,SIGINT);
+   sigaddset(&sa.sa_mask,SIGTERM);
+   sigaddset(&sa.sa_mask,SIGCHLD);
 
+   sa.sa_handler= morir; // funcion de Andres
+   sigaction(SIGINT ,&sa, NULL);
+   /*entrega la ficha para Ctrl+C. Los tres parámetros son:
+    La señal a la que se aplica (SIGINT).
+    La dirección de tu ficha (&sa).
+    Dónde guardar la configuración anterior. Como no la necesitas, NULL.
+    */
+   sigaction(SIGTERM, &sa, NULL);// lo mismo pero para SIGTERM
+
+   // cuando pulsemos Ctr C el la matrz ejecutara morir, mata a todos sus hijos y se envia el mensaje
+    // cuando el programa reciva igterm del padre , ejecutara morir y este se lo pasara a sus hijos
+    sa.sa_handler  = recoger_hijos;
+    sigaction(SIGCHLD, &sa, NULL);
+        /*Cuando un hijo muere, queda como "zombi" hasta que su padre lo recoge con waitpid.
+         Además, el padre tiene que restar uno al contador del fichero y 
+         quitar el PID de la lista hijos[]. La función recoger_hijos de tu compañero hace las tres cosas
+        , y el aviso SIGCHLD es lo que la pone en marcha.*/
+        
+        //---Implementar azar
 }
