@@ -15,6 +15,9 @@ static int soy_matriz;
 static pid_t hijos[MAX_PROCS];
 static int nhijos;
 
+// Creacion del struct para las señales
+
+
 static void escribir_pid(char letra)
 {
     char texto[32];
@@ -100,29 +103,30 @@ static void bloquear_senales(sigset_t *antes)
 int control_arg(int argc, char *argv[]){
     char modo;
     if(argc == 1){
-        fprintf(stderr,"Error, no me has pasado el numero de porcesoso, abortando programa.\n");
+        write(2,"Error, no me has pasado el numero de procesos, abortando programa.\n",
+             strlen("Error, no me has pasado el numero de procesos, abortando programa.\n"));
         return -1;
     }
     if(argc >= 4){
-        fprintf(stderr,"Error, me has pasado argumentos demas.\n");
+        write (2,"Error, me has pasado argumentos demas.\n",strlen("Error, me has pasado argumentos demas.\n"));
         return -2;
     }
     int proc_max=atoi(argv[1]);// pasamos de cadena de texto a int  por eso el atoi
     if(argc == 2){
         if(proc_max < 3 || proc_max > 34){
-            fprintf(stderr,"Error el numero de porcesos no es valido (rango entre 3-34).\n");
+            write (2,"Error el numero de procesos no es valido (rango entre 3-34).\n", strlen("Error el numero de procesos no es valido (rango entre 3-34).\n"));
             return -3;
         }
         return modo=0; // modo 0 significa q es velocidad norma asi  no estamos comparando con palabras
     }
     if(argc == 3){
         if(proc_max < 3 || proc_max > 34){
-            fprintf(stderr,"Error el numero de porcesos no es valido (rango entre 3-34).\n");
+            write(2,"Error el numero de procesos no es valido (rango entre 3-34).\n", strlen("Error el numero de procesos no es valido (rango entre 3-34).\n"));
             return -4;
         }
         
         if((strcmp(argv[2], "normal") !=0)  && (strcmp(argv[2],"veloz") !=0)){
-            fprintf(stderr,"Error has introducido un nombre de velocidad incorrecta pureba con normal o veloz.\n");
+            write(2,"Error has introducido un nombre de velocidad incorrecta prueba con normal o veloz.\n",strlen("Error has introducido un nombre de velocidad incorrecta prueba con normal o veloz.\n"));
             return -5;
         }
         // Comprobar q modo es
@@ -162,6 +166,11 @@ int main(int argc, char *argv[]){
     // ojo el orden,  porc max, y porc activos
     int datos[2]={proc_max,num_proc_activos};
     write(fd, datos, sizeof(datos));
+
+    //---Arrancamos la mtriz
+        soy_matrix = 1;
+        nijos=0;
+    //---Crear filial
     
    
 
