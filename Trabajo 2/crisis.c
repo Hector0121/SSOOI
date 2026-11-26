@@ -138,7 +138,54 @@ int control_arg(int argc, char *argv[]){
     return modo;
     
 }
+void crear_filial(void)
+{
+    sigset_t antes;
+    pid_t pid;
+   bloquear_senales(&antes); // bloqueamos las señales por precaucion y evitar problemas
+   int result =sumar_vivos(1);// sumamos 1 para comprobar cuanto proceos hay y si cabe reserva  un hueco en el fichero
+   if(result == 0){
+    //restaurmos las señales
+    sigprocmask(SIG_SETMASK,&antes,NULL);
+    
+   }
+   // si hay espacio
+   if(result == 1){
+    pid = fork();
+    if(pid == -1){
+        // un fallo
+        sumar_vivos(-1);// eliminamos el hueco q habiamos guardado
+    }
+    if(pid == 0){
+        // somos el hijo
+        soy_matriz = 0;
+        nhijos =0;
+        struct sigaction saa;
+        saa.sa_handler = SIG_IGN;
+        saa.sa_flags=0;
+        sigemptyset (&saa.sa_mask);
+        sigaction(SIGINT,&saa,NULL);
+        close(fd);
+        fd= open(FICHERO, O_RDWR);
+        
+        
+        srand(getpid());
+        escribir_pid('V');
 
+    }
+    if(pid > 0){
+
+        hijos[nhijos] = pid;// almaceno el pid de todos los hijos del padre
+        nhijos++;
+    }
+
+   }
+   sigprocmask(SIG_SETMASK,&antes,NULL);
+   
+}
+int sueno(){
+    return (1+rand() % 4);
+}
 
 int main(int argc, char *argv[]){
     //argc guarda un numero con los argumentos q le pasamos
@@ -157,7 +204,7 @@ int main(int argc, char *argv[]){
     int num_proc_activos=1;
     fd = open ("crisis.dat", O_RDWR | O_CREAT | O_TRUNC, 0600);
         if(fd == -1){
-            write(2, "Error en el fichero.\n", strlen("Error en el fichero.\n");
+            write(2, "Error en el fichero.\n", strlen("Error en el fichero.\n"));
             return -2;
         }
     
@@ -197,4 +244,50 @@ int main(int argc, char *argv[]){
         , y el aviso SIGCHLD es lo que la pone en marcha.*/
         
         //---Implementar azar
+        srand(getpid());
+        escribir_pid('V');
+      
+        // Cracion de hijos y nieto grueso del programa
+        while(1){
+            int Hypnos = sueno();
+            if(modo == 0){
+                sleep (Hypnos);
+                //primera accion soy el padre y creo una filial dspues paso a valer 0 y comeinzo a crear subproceso
+                if(soy_matriz ==1){
+                    crear_filial();
+                    
+                }
+                else{
+                    // 50% de crear un proceso o eliminarlo y co el todos los subprcesos q tenga
+                    int Two_Face = rand()%2;
+
+                    if(Two_Face == 0){
+                       crear_filial();
+                    
+                    }
+                    if(Two_Face == 1){
+                        raise(SIGTERM);
+                    }
+                }
+            }
+            else{
+            // es lo mismo q aqui pero como era modo veloz no dormimos
+                if(soy_matriz ==1){
+                  crear_filial();
+               
+                }
+                else{
+                    int Two_Face = rand()%2;
+
+                    if(Two_Face == 0){
+                       crear_filial();
+                     
+                    }
+                    if(Two_Face == 1){
+                        raise(SIGTERM);
+                    }
+                }
+
+            }
+        }
 }
