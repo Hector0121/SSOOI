@@ -1,4 +1,4 @@
-#include <stdio.h> // sprintf (escribir_pid)
+#include <stdio.h>
 #include <stdlib.h> // exit (morir)
 #include <string.h> // strlen (escribir_pid, morir)
 #include <unistd.h> // write, read, lseek, lockf, getpid, close, unlink
@@ -9,6 +9,12 @@
 #define MAX_PROCS 34 // tamaño del array hijos[]
 #define FICHERO "crisis.dat" // lo usa unlink en morir
 #define FINAL "Programa acabado correctamente\n" // lo escribimos en la matriz en morir
+#define ERR_FALTA_PROC  "Error: falta el numero de procesos.\n"
+#define ERR_SOBRAN "Error: sobran argumentos.\n"
+#define ERROR_RANGO  "Error: procesos entre 3 y 34.\n"
+#define ERR_VELOC    "Error: velocidad incorrecta.\n" \
+                    "prueba con normal o veloz.\n"
+#define ERROR_FICH "Error:En el fichero.\n"
 
 static int fd;
 static int soy_matriz;
@@ -66,7 +72,6 @@ static void recoger_hijos(int sig)
         sumar_vivos(-1);
     }
 }
-
 static void morir(int sig)
 {
     int i;
@@ -77,12 +82,11 @@ static void morir(int sig)
         waitpid(hijos[i], NULL, 0);
         sumar_vivos(-1);
     }
+    escribir_pid('M');
     if (soy_matriz) {
         close(fd);
         unlink(FICHERO);
         write(1, FINAL, strlen(FINAL));
-    } else {
-        escribir_pid('M');
     }
     exit(0);
 }
@@ -102,30 +106,29 @@ static void bloquear_senales(sigset_t *antes)
 int control_arg(int argc, char *argv[]){
     char modo;
     if(argc == 1){
-        write(2,"Error, no me has pasado el numero de procesos, abortando programa.\n",
-             strlen("Error, no me has pasado el numero de procesos, abortando programa.\n"));
+        write(2,ERR_FALTA_PROC,strlen(ERR_FALTA_PROC));
         return -1;
     }
     if(argc >= 4){
-        write (2,"Error, me has pasado argumentos demas.\n",strlen("Error, me has pasado argumentos demas.\n"));
+        write(2,ERR_SOBRAN,strlen(ERR_SOBRAN));
         return -2;
     }
     int proc_max=atoi(argv[1]);// pasamos de cadena de texto a int  por eso el atoi
     if(argc == 2){
         if(proc_max < 3 || proc_max > 34){
-            write (2,"Error el numero de procesos no es valido (rango entre 3-34).\n", strlen("Error el numero de procesos no es valido (rango entre 3-34).\n"));
+            write(2,ERROR_RANGO,strlen(ERROR_RANGO));
             return -3;
         }
         return modo=0; // modo 0 significa q es velocidad norma asi  no estamos comparando con palabras
     }
     if(argc == 3){
         if(proc_max < 3 || proc_max > 34){
-            write(2,"Error el numero de procesos no es valido (rango entre 3-34).\n", strlen("Error el numero de procesos no es valido (rango entre 3-34).\n"));
+            write(2,ERROR_RANGO,strlen(ERROR_RANGO));
             return -4;
         }
         
         if((strcmp(argv[2], "normal") !=0)  && (strcmp(argv[2],"veloz") !=0)){
-            write(2,"Error has introducido un nombre de velocidad incorrecta prueba con normal o veloz.\n",strlen("Error has introducido un nombre de velocidad incorrecta prueba con normal o veloz.\n"));
+            write(2,ERR_VELOC,strlen(ERR_VELOC));
             return -5;
         }
         // Comprobar q modo es
@@ -204,7 +207,7 @@ int main(int argc, char *argv[]){
     int num_proc_activos=1;
     fd = open ("crisis.dat", O_RDWR | O_CREAT | O_TRUNC, 0600);
         if(fd == -1){
-            write(2, "Error en el fichero.\n", strlen("Error en el fichero.\n"));
+            write(2, ERROR_FICH, strlen(ERROR_FICH));
             return -2;
         }
     
@@ -248,46 +251,56 @@ int main(int argc, char *argv[]){
         escribir_pid('V');
       
         // Cracion de hijos y nieto grueso del programa
-        while(1){
-            int Hypnos = sueno();
+       
+            
             if(modo == 0){
-                sleep (Hypnos);
-                //primera accion soy el padre y creo una filial dspues paso a valer 0 y comeinzo a crear subproceso
-                if(soy_matriz ==1){
-                    crear_filial();
-                    
-                }
-                else{
-                    // 50% de crear un proceso o eliminarlo y co el todos los subprcesos q tenga
-                    int Two_Face = rand()%2;
-
-                    if(Two_Face == 0){
-                       crear_filial();
-                    
+                while(1){
+                    int Hypnos = sueno();
+                    while (Hypnos > 0)
+                        Hypnos = sleep(Hypnos);
+                    //primera accion soy el padre y creo una filial dspues paso a valer 0 y comeinzo a crear subproceso
+                    if(soy_matriz ==1){
+                        crear_filial();
+                        
                     }
-                    if(Two_Face == 1){
-                        raise(SIGTERM);
+                    else{
+                        // 50% de crear un proceso o eliminarlo y co el todos los subprcesos q tenga
+                        int Two_Face = rand()%2;
+
+                        if(Two_Face == 0){
+                        crear_filial();
+                        
+                        }
+                        if(Two_Face == 1){
+                            sigset_t antes;
+                            bloquear_senales(&antes);
+                            morir(SIGTERM);
+                        }
                     }
                 }
             }
             else{
             // es lo mismo q aqui pero como era modo veloz no dormimos
-                if(soy_matriz ==1){
-                  crear_filial();
-               
-                }
-                else{
-                    int Two_Face = rand()%2;
-
-                    if(Two_Face == 0){
-                       crear_filial();
-                     
+                while(1){
+                    if(soy_matriz ==1){
+                    crear_filial();
+                
                     }
-                    if(Two_Face == 1){
-                        raise(SIGTERM);
+                    else{
+                        int Two_Face = rand()%2;
+
+                        if(Two_Face == 0){
+                        crear_filial();
+                        
+                        }
+                        if(Two_Face == 1){
+                            sigset_t antes;
+                            bloquear_senales(&antes);
+                            morir(SIGTERM);
+                        }
                     }
                 }
 
             }
-        }
+        
 }
